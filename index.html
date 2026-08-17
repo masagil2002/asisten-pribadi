@@ -33,7 +33,6 @@
       font-weight: bold;
       display: flex;
       justify-content: space-between;
-      align-items: center;
     }
 
     #loginPage {
@@ -116,7 +115,6 @@
       background: #111;
       color: white;
       font-size: 16px;
-      cursor: pointer;
     }
 
     .logout {
@@ -132,11 +130,9 @@
 <div class="app">
 
   <div id="loginPage">
-
     <h2>Asisten Pribadi</h2>
 
     <input id="email" type="email" placeholder="Email">
-
     <input id="password" type="password" placeholder="Password">
 
     <button onclick="login()">Login</button>
@@ -146,7 +142,6 @@
     </button>
 
     <div id="status"></div>
-
   </div>
 
 
@@ -157,14 +152,9 @@
       <button class="logout" onclick="logout()">Logout</button>
     </div>
 
-    <div id="chat">
-      <div class="message ai">
-        Halo. Saya siap membantu.
-      </div>
-    </div>
+    <div id="chat"></div>
 
     <div class="input-area">
-
       <input
         id="message"
         type="text"
@@ -173,7 +163,6 @@
       >
 
       <button onclick="sendMessage()">Kirim</button>
-
     </div>
 
   </div>
@@ -196,56 +185,7 @@ const supabaseClient =
   );
 
 
-// =========================
-// REGISTER
-// =========================
-
-async function register() {
-
-  const email =
-    document.getElementById("email").value.trim();
-
-  const password =
-    document.getElementById("password").value;
-
-  const status =
-    document.getElementById("status");
-
-  if (!email || !password) {
-    status.textContent =
-      "Email dan password wajib diisi.";
-    return;
-  }
-
-  if (password.length < 6) {
-    status.textContent =
-      "Password minimal 6 karakter.";
-    return;
-  }
-
-  status.textContent =
-    "Mendaftarkan akun...";
-
-  const { error } =
-    await supabaseClient.auth.signUp({
-      email,
-      password
-    });
-
-  if (error) {
-    status.textContent =
-      error.message;
-    return;
-  }
-
-  status.textContent =
-    "Pendaftaran berhasil. Silakan login.";
-}
-
-
-// =========================
 // LOGIN
-// =========================
 
 async function login() {
 
@@ -258,14 +198,7 @@ async function login() {
   const status =
     document.getElementById("status");
 
-  if (!email || !password) {
-    status.textContent =
-      "Email dan password wajib diisi.";
-    return;
-  }
-
-  status.textContent =
-    "Login...";
+  status.textContent = "Login...";
 
   const { error } =
     await supabaseClient.auth.signInWithPassword({
@@ -274,8 +207,7 @@ async function login() {
     });
 
   if (error) {
-    status.textContent =
-      error.message;
+    status.textContent = error.message;
     return;
   }
 
@@ -284,9 +216,36 @@ async function login() {
 }
 
 
-// =========================
+// REGISTER
+
+async function register() {
+
+  const email =
+    document.getElementById("email").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+  const status =
+    document.getElementById("status");
+
+  const { error } =
+    await supabaseClient.auth.signUp({
+      email,
+      password
+    });
+
+  if (error) {
+    status.textContent = error.message;
+    return;
+  }
+
+  status.textContent =
+    "Akun berhasil dibuat. Silakan login.";
+}
+
+
 // LOGOUT
-// =========================
 
 async function logout() {
 
@@ -300,9 +259,7 @@ async function logout() {
 }
 
 
-// =========================
 // TAMPILKAN CHAT
-// =========================
 
 function showChat() {
 
@@ -314,38 +271,7 @@ function showChat() {
 }
 
 
-// =========================
-// SIMPAN MEMORY
-// =========================
-
-async function saveMemory(text) {
-
-  const {
-    data: { user }
-  } = await supabaseClient.auth.getUser();
-
-  if (!user) return false;
-
-  const { error } =
-    await supabaseClient
-      .from("memories")
-      .insert({
-        user_id: user.id,
-        content: text
-      });
-
-  if (error) {
-    console.error(error);
-    return false;
-  }
-
-  return true;
-}
-
-
-// =========================
 // LOAD MEMORY
-// =========================
 
 async function loadMemories() {
 
@@ -355,35 +281,29 @@ async function loadMemories() {
 
   if (!user) return;
 
-  const { data, error } =
+  const { data } =
     await supabaseClient
       .from("memories")
-      .select("content, created_at")
+      .select("content")
       .eq("user_id", user.id)
       .order("created_at", {
         ascending: true
       });
-
-  if (error) {
-    console.error(error);
-    return;
-  }
 
   const chat =
     document.getElementById("chat");
 
   chat.innerHTML = "";
 
+  if (!data) return;
+
   data.forEach(memory => {
 
     const message =
       document.createElement("div");
 
-    message.className =
-      "message user";
-
-    message.textContent =
-      memory.content;
+    message.className = "message user";
+    message.textContent = memory.content;
 
     chat.appendChild(message);
 
@@ -394,9 +314,7 @@ async function loadMemories() {
 }
 
 
-// =========================
-// KIRIM PESAN
-// =========================
+// KIRIM PESAN KE AI
 
 async function sendMessage() {
 
@@ -411,50 +329,103 @@ async function sendMessage() {
 
   if (!text) return;
 
+  input.value = "";
+
+  // tampilkan pesan user
+
   const userMessage =
     document.createElement("div");
 
-  userMessage.className =
-    "message user";
-
-  userMessage.textContent =
-    text;
+  userMessage.className = "message user";
+  userMessage.textContent = text;
 
   chat.appendChild(userMessage);
 
-  input.value = "";
 
-  const saved =
-    await saveMemory(text);
+  // simpan memory
+
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) return;
+
+  await supabaseClient
+    .from("memories")
+    .insert({
+      user_id: user.id,
+      content: text
+    });
+
+
+  // ambil semua memory
+
+  const { data: memories } =
+    await supabaseClient
+      .from("memories")
+      .select("content")
+      .eq("user_id", user.id)
+      .order("created_at", {
+        ascending: true
+      });
+
+
+  // tampilkan "mengetik"
 
   const aiMessage =
     document.createElement("div");
 
-  aiMessage.className =
-    "message ai";
+  aiMessage.className = "message ai";
+  aiMessage.textContent = "Sedang berpikir...";
 
-  if (saved) {
+  chat.appendChild(aiMessage);
+
+  chat.scrollTop =
+    chat.scrollHeight;
+
+
+  // panggil Edge Function
+
+  const { data, error } =
+    await supabaseClient.functions.invoke(
+      "chat-ai",
+      {
+        body: {
+          message: text,
+          memories: memories || []
+        }
+      }
+    );
+
+
+  if (error) {
 
     aiMessage.textContent =
-      "Tersimpan di memory.";
+      "Error: " + error.message;
+
+    return;
+  }
+
+
+  if (data && data.reply) {
+
+    aiMessage.textContent =
+      data.reply;
 
   } else {
 
     aiMessage.textContent =
-      "Gagal menyimpan memory.";
+      "AI tidak memberikan jawaban.";
 
   }
 
-  chat.appendChild(aiMessage);
 
   chat.scrollTop =
     chat.scrollHeight;
 }
 
 
-// =========================
-// CEK LOGIN
-// =========================
+// CEK SESSION
 
 async function checkUser() {
 
