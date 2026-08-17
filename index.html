@@ -131,26 +131,15 @@
 
 <div class="app">
 
-  <!-- HALAMAN LOGIN -->
   <div id="loginPage">
 
     <h2>Asisten Pribadi</h2>
 
-    <input
-      id="email"
-      type="email"
-      placeholder="Email"
-    >
+    <input id="email" type="email" placeholder="Email">
 
-    <input
-      id="password"
-      type="password"
-      placeholder="Password"
-    >
+    <input id="password" type="password" placeholder="Password">
 
-    <button onclick="login()">
-      Login
-    </button>
+    <button onclick="login()">Login</button>
 
     <button onclick="register()" style="background:#555;">
       Daftar
@@ -161,7 +150,6 @@
   </div>
 
 
-  <!-- HALAMAN CHAT -->
   <div id="chatPage">
 
     <div class="header">
@@ -184,9 +172,7 @@
         onkeydown="if(event.key === 'Enter') sendMessage()"
       >
 
-      <button onclick="sendMessage()">
-        Kirim
-      </button>
+      <button onclick="sendMessage()">Kirim</button>
 
     </div>
 
@@ -197,208 +183,294 @@
 
 <script>
 
-  // =========================
-  // SUPABASE
-  // =========================
+const SUPABASE_URL =
+  "https://rmiubqnfefxfnlkvyaii.supabase.co";
 
-  const SUPABASE_URL =
-    "https://rmiubqnfefxfnlkvyaii.supabase.co";
+const SUPABASE_KEY =
+  "sb_publishable_jr5tdJkneltTbwZVv5oTyg_3kzY1Nb5";
 
-  const SUPABASE_KEY =
-    "sb_publishable_jr5tdJkneltTbwZVv5oTyg_3kzY1Nb5";
-
-  const supabaseClient =
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
-  // =========================
-  // REGISTER
-  // =========================
+// =========================
+// REGISTER
+// =========================
 
-  async function register() {
+async function register() {
 
-    const email =
-      document.getElementById("email").value.trim();
+  const email =
+    document.getElementById("email").value.trim();
 
-    const password =
-      document.getElementById("password").value;
+  const password =
+    document.getElementById("password").value;
 
-    const status =
-      document.getElementById("status");
+  const status =
+    document.getElementById("status");
 
-    if (!email || !password) {
-      status.textContent =
-        "Email dan password wajib diisi.";
-      return;
-    }
-
-    if (password.length < 6) {
-      status.textContent =
-        "Password minimal 6 karakter.";
-      return;
-    }
-
+  if (!email || !password) {
     status.textContent =
-      "Mendaftarkan akun...";
+      "Email dan password wajib diisi.";
+    return;
+  }
 
-    const { data, error } =
-      await supabaseClient.auth.signUp({
-        email: email,
-        password: password
+  if (password.length < 6) {
+    status.textContent =
+      "Password minimal 6 karakter.";
+    return;
+  }
+
+  status.textContent =
+    "Mendaftarkan akun...";
+
+  const { error } =
+    await supabaseClient.auth.signUp({
+      email,
+      password
+    });
+
+  if (error) {
+    status.textContent =
+      error.message;
+    return;
+  }
+
+  status.textContent =
+    "Pendaftaran berhasil. Silakan login.";
+}
+
+
+// =========================
+// LOGIN
+// =========================
+
+async function login() {
+
+  const email =
+    document.getElementById("email").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+  const status =
+    document.getElementById("status");
+
+  if (!email || !password) {
+    status.textContent =
+      "Email dan password wajib diisi.";
+    return;
+  }
+
+  status.textContent =
+    "Login...";
+
+  const { error } =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+  if (error) {
+    status.textContent =
+      error.message;
+    return;
+  }
+
+  showChat();
+  loadMemories();
+}
+
+
+// =========================
+// LOGOUT
+// =========================
+
+async function logout() {
+
+  await supabaseClient.auth.signOut();
+
+  document.getElementById("chatPage").style.display =
+    "none";
+
+  document.getElementById("loginPage").style.display =
+    "block";
+}
+
+
+// =========================
+// TAMPILKAN CHAT
+// =========================
+
+function showChat() {
+
+  document.getElementById("loginPage").style.display =
+    "none";
+
+  document.getElementById("chatPage").style.display =
+    "flex";
+}
+
+
+// =========================
+// SIMPAN MEMORY
+// =========================
+
+async function saveMemory(text) {
+
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) return false;
+
+  const { error } =
+    await supabaseClient
+      .from("memories")
+      .insert({
+        user_id: user.id,
+        content: text
       });
 
-    if (error) {
-      status.textContent =
-        error.message;
-      return;
-    }
-
-    status.textContent =
-      "Pendaftaran berhasil. Silakan login.";
-
+  if (error) {
+    console.error(error);
+    return false;
   }
 
+  return true;
+}
 
-  // =========================
-  // LOGIN
-  // =========================
 
-  async function login() {
+// =========================
+// LOAD MEMORY
+// =========================
 
-    const email =
-      document.getElementById("email").value.trim();
+async function loadMemories() {
 
-    const password =
-      document.getElementById("password").value;
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
 
-    const status =
-      document.getElementById("status");
+  if (!user) return;
 
-    if (!email || !password) {
-      status.textContent =
-        "Email dan password wajib diisi.";
-      return;
-    }
-
-    status.textContent =
-      "Login...";
-
-    const { data, error } =
-      await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
+  const { data, error } =
+    await supabaseClient
+      .from("memories")
+      .select("content, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", {
+        ascending: true
       });
 
-    if (error) {
-      status.textContent =
-        error.message;
-      return;
-    }
-
-    showChat();
-
+  if (error) {
+    console.error(error);
+    return;
   }
 
+  const chat =
+    document.getElementById("chat");
 
-  // =========================
-  // LOGOUT
-  // =========================
+  chat.innerHTML = "";
 
-  async function logout() {
+  data.forEach(memory => {
 
-    await supabaseClient.auth.signOut();
-
-    document.getElementById("chatPage").style.display =
-      "none";
-
-    document.getElementById("loginPage").style.display =
-      "block";
-
-  }
-
-
-  // =========================
-  // TAMPILKAN CHAT
-  // =========================
-
-  function showChat() {
-
-    document.getElementById("loginPage").style.display =
-      "none";
-
-    document.getElementById("chatPage").style.display =
-      "flex";
-
-  }
-
-
-  // =========================
-  // CEK LOGIN SAAT WEB DIBUKA
-  // =========================
-
-  async function checkUser() {
-
-    const { data } =
-      await supabaseClient.auth.getSession();
-
-    if (data.session) {
-      showChat();
-    }
-
-  }
-
-
-  // =========================
-  // CHAT SEMENTARA
-  // =========================
-
-  function sendMessage() {
-
-    const input =
-      document.getElementById("message");
-
-    const chat =
-      document.getElementById("chat");
-
-    const text =
-      input.value.trim();
-
-    if (!text) return;
-
-    const userMessage =
+    const message =
       document.createElement("div");
 
-    userMessage.className =
+    message.className =
       "message user";
 
-    userMessage.textContent =
-      text;
+    message.textContent =
+      memory.content;
 
-    chat.appendChild(userMessage);
+    chat.appendChild(message);
 
-    input.value = "";
+  });
 
-    const aiMessage =
-      document.createElement("div");
+  chat.scrollTop =
+    chat.scrollHeight;
+}
 
-    aiMessage.className =
-      "message ai";
+
+// =========================
+// KIRIM PESAN
+// =========================
+
+async function sendMessage() {
+
+  const input =
+    document.getElementById("message");
+
+  const chat =
+    document.getElementById("chat");
+
+  const text =
+    input.value.trim();
+
+  if (!text) return;
+
+  const userMessage =
+    document.createElement("div");
+
+  userMessage.className =
+    "message user";
+
+  userMessage.textContent =
+    text;
+
+  chat.appendChild(userMessage);
+
+  input.value = "";
+
+  const saved =
+    await saveMemory(text);
+
+  const aiMessage =
+    document.createElement("div");
+
+  aiMessage.className =
+    "message ai";
+
+  if (saved) {
 
     aiMessage.textContent =
-      "Pesan diterima. Selanjutnya kita hubungkan AI dan memory Supabase.";
+      "Tersimpan di memory.";
 
-    chat.appendChild(aiMessage);
+  } else {
 
-    chat.scrollTop =
-      chat.scrollHeight;
+    aiMessage.textContent =
+      "Gagal menyimpan memory.";
 
   }
 
+  chat.appendChild(aiMessage);
 
-  checkUser();
+  chat.scrollTop =
+    chat.scrollHeight;
+}
+
+
+// =========================
+// CEK LOGIN
+// =========================
+
+async function checkUser() {
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (session) {
+
+    showChat();
+    loadMemories();
+
+  }
+}
+
+checkUser();
 
 </script>
 
