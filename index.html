@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asisten Pribadi</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -31,6 +31,39 @@
       border-bottom: 1px solid #ddd;
       font-size: 20px;
       font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #loginPage {
+      padding: 30px 20px;
+    }
+
+    #loginPage h2 {
+      text-align: center;
+    }
+
+    #loginPage input {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    #loginPage button {
+      width: 100%;
+      margin-top: 5px;
+    }
+
+    #status {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    #chatPage {
+      display: none;
+      flex-direction: column;
+      height: 100%;
     }
 
     #chat {
@@ -66,11 +99,14 @@
     }
 
     input {
-      flex: 1;
       padding: 12px;
       border: 1px solid #ccc;
       border-radius: 10px;
       font-size: 16px;
+    }
+
+    .input-area input {
+      flex: 1;
     }
 
     button {
@@ -80,6 +116,13 @@
       background: #111;
       color: white;
       font-size: 16px;
+      cursor: pointer;
+    }
+
+    .logout {
+      padding: 8px 12px;
+      font-size: 13px;
+      background: #d33;
     }
   </style>
 </head>
@@ -88,57 +131,275 @@
 
 <div class="app">
 
-  <div class="header">
-    Asisten Pribadi
-  </div>
+  <!-- HALAMAN LOGIN -->
+  <div id="loginPage">
 
-  <div id="chat">
-    <div class="message ai">
-      Halo. Saya siap membantu.
-    </div>
-  </div>
+    <h2>Asisten Pribadi</h2>
 
-  <div class="input-area">
     <input
-      id="message"
-      type="text"
-      placeholder="Tulis pesan..."
-      onkeydown="if(event.key === 'Enter') sendMessage()"
+      id="email"
+      type="email"
+      placeholder="Email"
     >
 
-    <button onclick="sendMessage()">
-      Kirim
+    <input
+      id="password"
+      type="password"
+      placeholder="Password"
+    >
+
+    <button onclick="login()">
+      Login
     </button>
+
+    <button onclick="register()" style="background:#555;">
+      Daftar
+    </button>
+
+    <div id="status"></div>
+
+  </div>
+
+
+  <!-- HALAMAN CHAT -->
+  <div id="chatPage">
+
+    <div class="header">
+      <span>Asisten Pribadi</span>
+      <button class="logout" onclick="logout()">Logout</button>
+    </div>
+
+    <div id="chat">
+      <div class="message ai">
+        Halo. Saya siap membantu.
+      </div>
+    </div>
+
+    <div class="input-area">
+
+      <input
+        id="message"
+        type="text"
+        placeholder="Tulis pesan..."
+        onkeydown="if(event.key === 'Enter') sendMessage()"
+      >
+
+      <button onclick="sendMessage()">
+        Kirim
+      </button>
+
+    </div>
+
   </div>
 
 </div>
 
-<script>
-  function sendMessage() {
-    const input = document.getElementById("message");
-    const chat = document.getElementById("chat");
 
-    const text = input.value.trim();
+<script>
+
+  // =========================
+  // SUPABASE
+  // =========================
+
+  const SUPABASE_URL =
+    "https://rmiubqnfefxfnlkvyaii.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_jr5tdJkneltTbwZVv5oTyg_3kzY1Nb5";
+
+  const supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+
+  // =========================
+  // REGISTER
+  // =========================
+
+  async function register() {
+
+    const email =
+      document.getElementById("email").value.trim();
+
+    const password =
+      document.getElementById("password").value;
+
+    const status =
+      document.getElementById("status");
+
+    if (!email || !password) {
+      status.textContent =
+        "Email dan password wajib diisi.";
+      return;
+    }
+
+    if (password.length < 6) {
+      status.textContent =
+        "Password minimal 6 karakter.";
+      return;
+    }
+
+    status.textContent =
+      "Mendaftarkan akun...";
+
+    const { data, error } =
+      await supabaseClient.auth.signUp({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+      status.textContent =
+        error.message;
+      return;
+    }
+
+    status.textContent =
+      "Pendaftaran berhasil. Silakan login.";
+
+  }
+
+
+  // =========================
+  // LOGIN
+  // =========================
+
+  async function login() {
+
+    const email =
+      document.getElementById("email").value.trim();
+
+    const password =
+      document.getElementById("password").value;
+
+    const status =
+      document.getElementById("status");
+
+    if (!email || !password) {
+      status.textContent =
+        "Email dan password wajib diisi.";
+      return;
+    }
+
+    status.textContent =
+      "Login...";
+
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+      status.textContent =
+        error.message;
+      return;
+    }
+
+    showChat();
+
+  }
+
+
+  // =========================
+  // LOGOUT
+  // =========================
+
+  async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    document.getElementById("chatPage").style.display =
+      "none";
+
+    document.getElementById("loginPage").style.display =
+      "block";
+
+  }
+
+
+  // =========================
+  // TAMPILKAN CHAT
+  // =========================
+
+  function showChat() {
+
+    document.getElementById("loginPage").style.display =
+      "none";
+
+    document.getElementById("chatPage").style.display =
+      "flex";
+
+  }
+
+
+  // =========================
+  // CEK LOGIN SAAT WEB DIBUKA
+  // =========================
+
+  async function checkUser() {
+
+    const { data } =
+      await supabaseClient.auth.getSession();
+
+    if (data.session) {
+      showChat();
+    }
+
+  }
+
+
+  // =========================
+  // CHAT SEMENTARA
+  // =========================
+
+  function sendMessage() {
+
+    const input =
+      document.getElementById("message");
+
+    const chat =
+      document.getElementById("chat");
+
+    const text =
+      input.value.trim();
 
     if (!text) return;
 
-    const userMessage = document.createElement("div");
-    userMessage.className = "message user";
-    userMessage.textContent = text;
+    const userMessage =
+      document.createElement("div");
+
+    userMessage.className =
+      "message user";
+
+    userMessage.textContent =
+      text;
 
     chat.appendChild(userMessage);
 
     input.value = "";
 
-    const aiMessage = document.createElement("div");
-    aiMessage.className = "message ai";
+    const aiMessage =
+      document.createElement("div");
+
+    aiMessage.className =
+      "message ai";
+
     aiMessage.textContent =
-      "Pesan diterima. AI dan database akan kita hubungkan setelah ini.";
+      "Pesan diterima. Selanjutnya kita hubungkan AI dan memory Supabase.";
 
     chat.appendChild(aiMessage);
 
-    chat.scrollTop = chat.scrollHeight;
+    chat.scrollTop =
+      chat.scrollHeight;
+
   }
+
+
+  checkUser();
+
 </script>
 
 </body>
