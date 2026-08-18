@@ -76,6 +76,7 @@
       font-size: 12px;
       color: #777;
       font-weight: normal;
+      margin-top: 3px;
     }
 
     #chat {
@@ -151,7 +152,6 @@
 
 <div class="app">
 
-  <!-- HALAMAN MASUK -->
   <div id="accessPage">
 
     <h2>Chat Pribadi</h2>
@@ -179,10 +179,10 @@
   </div>
 
 
-  <!-- HALAMAN CHAT -->
   <div id="chatPage">
 
     <div class="header">
+
       <div>
         <div>Chat Pribadi</div>
         <div class="room">Ruang berdua</div>
@@ -191,9 +191,12 @@
       <button class="leave" onclick="leaveChat()">
         Keluar
       </button>
+
     </div>
 
+
     <div id="chat"></div>
+
 
     <div class="input-area">
 
@@ -219,10 +222,10 @@
 <script>
 
 const SUPABASE_URL =
-  "https://rmiubqnfefxfnlkvyaii.supabase.co";
+  "https://aymsvwvtyalewphcvvfb.supabase.co";
 
 const SUPABASE_KEY =
-  "sb_publishable_jr5tdJKneltTbwZVv5oTyg_3kzY1Nb5";
+  "sb_publishable_cAkNxO3QBbR2HaKLJPV6BQ_Zme9TIhz";
 
 const supabaseClient =
   window.supabase.createClient(
@@ -231,12 +234,10 @@ const supabaseClient =
   );
 
 
-// IDENTITAS USER
 let myName = "";
 
 
-// PIN RUANG CHAT
-// GANTI PIN INI DENGAN PIN YANG KAMU MAU
+// GANTI PIN DI SINI
 const CHAT_PIN = "1234";
 
 
@@ -267,12 +268,6 @@ function enterChat() {
 
   myName = name;
 
-  localStorage.setItem(
-    "chat_name",
-    myName
-  );
-
-
   document.getElementById("accessPage").style.display =
     "none";
 
@@ -290,9 +285,13 @@ function leaveChat() {
 
   myName = "";
 
-  localStorage.removeItem("chat_name");
+  document.getElementById("chatPage").style.display =
+    "none";
 
-  location.reload();
+  document.getElementById("accessPage").style.display =
+    "block";
+
+  document.getElementById("chat").innerHTML = "";
 }
 
 
@@ -317,7 +316,9 @@ async function loadMessages() {
   if (error) {
 
     chat.innerHTML =
-      "<div>Gagal mengambil pesan.</div>";
+      "<div>Gagal mengambil pesan: " +
+      error.message +
+      "</div>";
 
     console.error(error);
 
@@ -326,7 +327,9 @@ async function loadMessages() {
 
 
   data.forEach(message => {
+
     displayMessage(message);
+
   });
 
 
@@ -357,7 +360,8 @@ function displayMessage(message) {
   const sender =
     document.createElement("div");
 
-  sender.className = "sender";
+  sender.className =
+    "sender";
 
   sender.textContent =
     message.sender;
@@ -413,8 +417,10 @@ async function sendMessage() {
 
     input.value = text;
 
-    return;
+    console.error(error);
+
   }
+
 }
 
 
@@ -441,10 +447,11 @@ function subscribeRealtime() {
       }
     )
     .subscribe();
+
 }
 
 
-// SCROLL KE PESAN TERAKHIR
+// SCROLL
 function scrollBottom() {
 
   const chat =
@@ -452,18 +459,6 @@ function scrollBottom() {
 
   chat.scrollTop =
     chat.scrollHeight;
-}
-
-
-// AUTO LOGIN TAMPILAN
-const savedName =
-  localStorage.getItem("chat_name");
-
-if (savedName) {
-
-  document.getElementById("name").value =
-    savedName;
-
 }
 
 </script>
