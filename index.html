@@ -390,40 +390,37 @@ async function sendMessage() {
   const text =
     input.value.trim();
 
-
   if (!text) return;
 
   if (!myName) return;
 
-
   input.value = "";
 
-
-  const { error } =
+  const { data, error } =
     await supabaseClient
       .from("messages")
       .insert({
         sender: myName,
         message: text
-      });
-
+      })
+      .select();
 
   if (error) {
 
     alert(
-      "Pesan gagal dikirim: " +
+      "SUPABASE ERROR:\n\n" +
       error.message
     );
 
-    input.value = text;
-
     console.error(error);
 
+    input.value = text;
+
+    return;
   }
 
+  console.log("BERHASIL:", data);
 }
-
-
 // REALTIME
 function subscribeRealtime() {
 
