@@ -127,62 +127,151 @@
       margin-right: auto;
     }
 
+    .message img {
+      display: block;
+      max-width: 100%;
+      max-height: 350px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .message video {
+      display: block;
+      max-width: 100%;
+      max-height: 350px;
+      border-radius: 10px;
+    }
+
+    .media-name {
+      font-size: 12px;
+      margin-top: 6px;
+      opacity: 0.7;
+    }
+
+    .view-once-button {
+      width: 100%;
+      background: #222;
+    }
+
+    .expired {
+      opacity: 0.65;
+      font-size: 13px;
+    }
+
     .input-area {
       display: flex;
       padding: 10px;
       border-top: 1px solid #ddd;
       gap: 8px;
+      align-items: center;
     }
 
-    .input-area input {
+    .input-area input[type="text"] {
       flex: 1;
+      min-width: 0;
     }
 
-    .call-area {
+    .media-button {
+      width: 48px;
+      height: 46px;
+      padding: 0;
+      font-size: 22px;
+      background: #eee;
+      color: #111;
+      flex-shrink: 0;
+    }
+
+    .send-button {
+      flex-shrink: 0;
+    }
+
+    #fileInput {
       display: none;
-      position: relative;
-      padding: 10px;
-      background: #111;
     }
 
-    #remoteVideo {
-      width: 100%;
-      max-height: 70vh;
-      background: #000;
-      border-radius: 12px;
-      display: block;
-    }
-
-    #localVideo {
-      position: absolute;
-      width: 120px;
-      right: 20px;
-      top: 20px;
-      background: #000;
-      border-radius: 10px;
-    }
-
-    .call-buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .call-buttons button {
-      flex: 1;
-    }
-
-    .end-call {
-      background: #d33;
-    }
-
-    #screenNotice {
+    #uploadStatus {
       display: none;
-      padding: 10px;
-      background: #d33;
-      color: white;
+      padding: 8px 12px;
       font-size: 13px;
-      text-align: center;
+      color: #555;
+      background: #f5f5f5;
+      border-top: 1px solid #ddd;
+    }
+
+    .preview {
+      display: none;
+      padding: 8px 10px;
+      border-top: 1px solid #ddd;
+      background: #fafafa;
+      font-size: 13px;
+    }
+
+    .preview button {
+      background: #d33;
+      padding: 5px 9px;
+      margin-left: 8px;
+      font-size: 12px;
+    }
+
+    #mediaMenu {
+      display: none;
+      position: fixed;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 10px;
+      box-shadow: 0 5px 20px rgba(0,0,0,.2);
+      z-index: 5000;
+      width: 240px;
+    }
+
+    #mediaMenu button {
+      width: 100%;
+      margin-bottom: 7px;
+    }
+
+    #mediaMenu button:last-child {
+      margin-bottom: 0;
+    }
+
+    .fullscreen-media {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.94);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .fullscreen-media img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 5px;
+    }
+
+    .close-media {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #d33;
+      font-size: 20px;
+      width: 45px;
+      height: 45px;
+      padding: 0;
+      border-radius: 50%;
+      z-index: 2;
+    }
+
+    .view-once-label {
+      font-size: 13px;
+      margin-top: 6px;
+      opacity: .8;
     }
   </style>
 </head>
@@ -191,7 +280,10 @@
 
 <div class="app">
 
-  <!-- MASUK RUANG -->
+  <!-- ========================= -->
+  <!-- HALAMAN MASUK -->
+  <!-- ========================= -->
+
   <div id="accessPage">
 
     <h2>Chat Pribadi</h2>
@@ -213,7 +305,10 @@
   </div>
 
 
-  <!-- CHAT -->
+  <!-- ========================= -->
+  <!-- HALAMAN CHAT -->
+  <!-- ========================= -->
+
   <div id="chatPage">
 
     <div class="header">
@@ -230,49 +325,26 @@
     </div>
 
 
-    <!-- VIDEO CALL -->
-    <div id="callArea">
+    <div id="chat"></div>
 
-      <div id="screenNotice">
-        ⚠️ Aktivitas berbagi layar terdeteksi.
-      </div>
 
-      <video
-        id="remoteVideo"
-        autoplay
-        playsinline
-      ></video>
-
-      <video
-        id="localVideo"
-        autoplay
-        muted
-        playsinline
-      ></video>
-
-      <div class="call-buttons">
-
-        <button onclick="toggleMic()">
-          Mic
-        </button>
-
-        <button onclick="toggleCamera()">
-          Kamera
-        </button>
-
-        <button
-          class="end-call"
-          onclick="endCall()"
-        >
-          Tutup
-        </button>
-
-      </div>
-
+    <div id="uploadStatus">
+      Mengunggah...
     </div>
 
 
-    <div id="chat"></div>
+    <div
+      id="preview"
+      class="preview"
+    >
+
+      <span id="previewName"></span>
+
+      <button onclick="cancelFile()">
+        Batal
+      </button>
+
+    </div>
 
 
     <div class="input-area">
@@ -285,7 +357,28 @@
         onkeydown="if(event.key === 'Enter') sendMessage()"
       >
 
-      <button onclick="sendMessage()">
+
+      <input
+        id="fileInput"
+        type="file"
+        accept="image/*,video/*"
+        onchange="selectFile(event)"
+      >
+
+
+      <button
+        class="media-button"
+        onclick="openMediaMenu()"
+        title="Kirim media"
+      >
+        📎
+      </button>
+
+
+      <button
+        class="send-button"
+        onclick="sendMessage()"
+      >
         Kirim
       </button>
 
@@ -296,7 +389,50 @@
 </div>
 
 
+<!-- ========================= -->
+<!-- MENU MEDIA -->
+<!-- ========================= -->
+
+<div id="mediaMenu">
+
+  <button onclick="chooseMedia(false)">
+    🖼️ Kirim gambar / video
+  </button>
+
+  <button onclick="chooseMedia(true)">
+    👁️ Gambar sekali lihat
+  </button>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- FULLSCREEN -->
+<!-- ========================= -->
+
+<div
+  id="fullscreenMedia"
+  class="fullscreen-media"
+  onclick="closeFullscreen(event)"
+>
+
+  <button
+    class="close-media"
+    onclick="closeFullscreen()"
+  >
+    ×
+  </button>
+
+  <div id="fullscreenContent"></div>
+
+</div>
+
+
 <script>
+
+/* =====================================
+   SUPABASE
+===================================== */
 
 const SUPABASE_URL =
   "https://aymsvwvtyalewphcvvfb.supabase.co";
@@ -311,31 +447,39 @@ const supabaseClient =
   );
 
 
-// ===============================
-// PENGATURAN
-// ===============================
+/* =====================================
+   PENGATURAN
+===================================== */
 
-const CHAT_PIN = "1234";
+const CHAT_PIN =
+  "4827";
 
-let myId = "";
+const STORAGE_BUCKET =
+  "chat-media";
 
-let chatChannel = null;
+let myId =
+  "";
 
-let callChannel = null;
+let chatChannel =
+  null;
 
-let peerConnection = null;
+let selectedFile =
+  null;
 
-let localStream = null;
+let selectedViewOnce =
+  false;
 
 
-// ===============================
-// MASUK
-// ===============================
+/* =====================================
+   MASUK
+===================================== */
 
 function enterChat() {
 
   const pin =
-    document.getElementById("pin").value.trim();
+    document.getElementById("pin")
+      .value
+      .trim();
 
   const status =
     document.getElementById("status");
@@ -361,9 +505,10 @@ function enterChat() {
   }
 
 
-  // ID otomatis
   myId =
-    localStorage.getItem("chat_user_id");
+    localStorage.getItem(
+      "chat_user_id"
+    );
 
 
   if (!myId) {
@@ -379,10 +524,15 @@ function enterChat() {
   }
 
 
-  document.getElementById("accessPage").style.display =
+  document.getElementById(
+    "accessPage"
+  ).style.display =
     "none";
 
-  document.getElementById("chatPage").style.display =
+
+  document.getElementById(
+    "chatPage"
+  ).style.display =
     "flex";
 
 
@@ -393,14 +543,11 @@ function enterChat() {
 }
 
 
-// ===============================
-// KELUAR
-// ===============================
+/* =====================================
+   KELUAR
+===================================== */
 
 function leaveChat() {
-
-  endCall();
-
 
   if (chatChannel) {
 
@@ -408,49 +555,74 @@ function leaveChat() {
       chatChannel
     );
 
-    chatChannel = null;
+    chatChannel =
+      null;
 
   }
 
 
-  myId = "";
+  cancelFile();
 
 
-  document.getElementById("chatPage").style.display =
-    "none";
-
-  document.getElementById("accessPage").style.display =
-    "block";
-
-  document.getElementById("pin").value =
+  myId =
     "";
 
-  document.getElementById("chat").innerHTML =
+
+  document.getElementById(
+    "chatPage"
+  ).style.display =
+    "none";
+
+
+  document.getElementById(
+    "accessPage"
+  ).style.display =
+    "block";
+
+
+  document.getElementById(
+    "pin"
+  ).value =
+    "";
+
+
+  document.getElementById(
+    "chat"
+  ).innerHTML =
     "";
 
 }
 
 
-// ===============================
-// LOAD PESAN
-// ===============================
+/* =====================================
+   LOAD PESAN
+===================================== */
 
 async function loadMessages() {
 
   const chat =
-    document.getElementById("chat");
+    document.getElementById(
+      "chat"
+    );
 
 
-  chat.innerHTML = "";
+  chat.innerHTML =
+    "";
 
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await supabaseClient
       .from("messages")
       .select("*")
-      .order("created_at", {
-        ascending: true
-      });
+      .order(
+        "created_at",
+        {
+          ascending: true
+        }
+      );
 
 
   if (error) {
@@ -464,9 +636,15 @@ async function loadMessages() {
   }
 
 
-  data.forEach(
-    displayMessage
-  );
+  for (
+    const message of data
+  ) {
+
+    await displayMessage(
+      message
+    );
+
+  }
 
 
   scrollBottom();
@@ -474,18 +652,24 @@ async function loadMessages() {
 }
 
 
-// ===============================
-// TAMPILKAN PESAN
-// ===============================
+/* =====================================
+   TAMPILKAN PESAN
+===================================== */
 
-function displayMessage(message) {
+async function displayMessage(
+  message
+) {
 
   const chat =
-    document.getElementById("chat");
+    document.getElementById(
+      "chat"
+    );
 
 
   const box =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
 
   box.className =
@@ -497,43 +681,311 @@ function displayMessage(message) {
     );
 
 
-  box.textContent =
-    message.message;
+  let mediaData =
+    null;
 
 
-  chat.appendChild(box);
+  try {
+
+    const parsed =
+      JSON.parse(
+        message.message
+      );
+
+
+    if (
+      parsed &&
+      parsed.type === "media" &&
+      parsed.url
+    ) {
+
+      mediaData =
+        parsed;
+
+    }
+
+  } catch (error) {
+
+    mediaData =
+      null;
+
+  }
+
+
+  /* =================================
+     MEDIA
+  ================================= */
+
+  if (mediaData) {
+
+    /* ===============================
+       SEKALI LIHAT
+    =============================== */
+
+    if (
+      mediaData.viewOnce === true
+    ) {
+
+      const viewedBy =
+        Array.isArray(
+          mediaData.viewedBy
+        )
+          ? mediaData.viewedBy
+          : [];
+
+
+      const alreadyViewed =
+        viewedBy.includes(
+          myId
+        );
+
+
+      /*
+        Pengirim tetap bisa melihat
+        pesan yang dia kirim.
+      */
+
+      if (
+        alreadyViewed &&
+        message.sender !== myId
+      ) {
+
+        const expired =
+          document.createElement(
+            "div"
+          );
+
+
+        expired.className =
+          "expired";
+
+
+        expired.textContent =
+          "👁️ Gambar sekali lihat sudah dibuka";
+
+
+        box.appendChild(
+          expired
+        );
+
+      }
+
+      else {
+
+        const button =
+          document.createElement(
+            "button"
+          );
+
+
+        button.className =
+          "view-once-button";
+
+
+        button.textContent =
+          "👁️ Lihat gambar sekali";
+
+
+        button.onclick =
+          () => openViewOnce(
+            message,
+            mediaData
+          );
+
+
+        box.appendChild(
+          button
+        );
+
+
+        const label =
+          document.createElement(
+            "div"
+          );
+
+
+        label.className =
+          "view-once-label";
+
+
+        label.textContent =
+          "Gambar sekali lihat";
+
+
+        box.appendChild(
+          label
+        );
+
+      }
+
+    }
+
+
+    /* ===============================
+       MEDIA BIASA
+    =============================== */
+
+    else {
+
+      if (
+        mediaData.mediaType ===
+        "image"
+      ) {
+
+        const img =
+          document.createElement(
+            "img"
+          );
+
+
+        img.src =
+          mediaData.url;
+
+
+        img.alt =
+          mediaData.name ||
+          "Gambar";
+
+
+        img.onclick =
+          () => openImage(
+            mediaData.url
+          );
+
+
+        box.appendChild(
+          img
+        );
+
+      }
+
+
+      if (
+        mediaData.mediaType ===
+        "video"
+      ) {
+
+        const video =
+          document.createElement(
+            "video"
+          );
+
+
+        video.src =
+          mediaData.url;
+
+
+        video.controls =
+          true;
+
+
+        video.playsInline =
+          true;
+
+
+        box.appendChild(
+          video
+        );
+
+      }
+
+    }
+
+
+    if (
+      mediaData.name
+    ) {
+
+      const name =
+        document.createElement(
+          "div"
+        );
+
+
+      name.className =
+        "media-name";
+
+
+      name.textContent =
+        mediaData.viewOnce
+          ? "👁️ Sekali lihat"
+          : mediaData.name;
+
+
+      box.appendChild(
+        name
+      );
+
+    }
+
+  }
+
+  /* =================================
+     PESAN TEKS
+  ================================= */
+
+  else {
+
+    box.textContent =
+      message.message;
+
+  }
+
+
+  chat.appendChild(
+    box
+  );
 
 }
 
 
-// ===============================
-// KIRIM PESAN
-// ===============================
+/* =====================================
+   KIRIM PESAN
+===================================== */
 
 async function sendMessage() {
 
+  if (
+    selectedFile
+  ) {
+
+    await uploadMedia();
+
+    return;
+
+  }
+
+
   const input =
-    document.getElementById("message");
+    document.getElementById(
+      "message"
+    );
 
 
   const text =
     input.value.trim();
 
 
-  if (!text) return;
+  if (!text)
+    return;
 
 
-  input.value = "";
+  input.value =
+    "";
 
 
-  const { error } =
+  const {
+    error
+  } =
     await supabaseClient
       .from("messages")
       .insert({
 
-        sender: myId,
+        sender:
+          myId,
 
-        message: text
+        message:
+          text
 
       });
 
@@ -545,39 +997,486 @@ async function sendMessage() {
       error.message
     );
 
-    input.value = text;
+
+    input.value =
+      text;
 
   }
 
 }
 
 
-// ===============================
-// REALTIME CHAT
-// ===============================
+/* =====================================
+   MENU MEDIA
+===================================== */
+
+function openMediaMenu() {
+
+  const menu =
+    document.getElementById(
+      "mediaMenu"
+    );
+
+
+  menu.style.display =
+    menu.style.display === "block"
+      ? "none"
+      : "block";
+
+}
+
+
+function chooseMedia(
+  viewOnce
+) {
+
+  selectedViewOnce =
+    viewOnce;
+
+
+  document.getElementById(
+    "mediaMenu"
+  ).style.display =
+    "none";
+
+
+  const input =
+    document.getElementById(
+      "fileInput"
+    );
+
+
+  if (
+    viewOnce
+  ) {
+
+    input.accept =
+      "image/*";
+
+  }
+
+  else {
+
+    input.accept =
+      "image/*,video/*";
+
+  }
+
+
+  input.value =
+    "";
+
+
+  input.click();
+
+}
+
+
+/* =====================================
+   PILIH FILE
+===================================== */
+
+function selectFile(
+  event
+) {
+
+  const file =
+    event.target.files[0];
+
+
+  if (!file)
+    return;
+
+
+  const maxSize =
+    50 *
+    1024 *
+    1024;
+
+
+  if (
+    file.size >
+    maxSize
+  ) {
+
+    alert(
+      "Ukuran file maksimal 50 MB."
+    );
+
+
+    event.target.value =
+      "";
+
+
+    return;
+
+  }
+
+
+  if (
+    !file.type.startsWith(
+      "image/"
+    ) &&
+    !file.type.startsWith(
+      "video/"
+    )
+  ) {
+
+    alert(
+      "Hanya gambar dan video yang diperbolehkan."
+    );
+
+
+    event.target.value =
+      "";
+
+
+    return;
+
+  }
+
+
+  if (
+    selectedViewOnce &&
+    !file.type.startsWith(
+      "image/"
+    )
+  ) {
+
+    alert(
+      "Sekali lihat hanya bisa digunakan untuk gambar."
+    );
+
+
+    event.target.value =
+      "";
+
+
+    return;
+
+  }
+
+
+  selectedFile =
+    file;
+
+
+  document.getElementById(
+    "previewName"
+  ).textContent =
+    selectedViewOnce
+      ? "👁️ " +
+        file.name +
+        " — Sekali lihat"
+      : file.name;
+
+
+  document.getElementById(
+    "preview"
+  ).style.display =
+    "block";
+
+}
+
+
+/* =====================================
+   BATAL FILE
+===================================== */
+
+function cancelFile() {
+
+  selectedFile =
+    null;
+
+
+  selectedViewOnce =
+    false;
+
+
+  document.getElementById(
+    "fileInput"
+  ).value =
+    "";
+
+
+  document.getElementById(
+    "preview"
+  ).style.display =
+    "none";
+
+
+  document.getElementById(
+    "previewName"
+  ).textContent =
+    "";
+
+}
+
+
+/* =====================================
+   UPLOAD MEDIA
+===================================== */
+
+async function uploadMedia() {
+
+  if (!selectedFile)
+    return;
+
+
+  const file =
+    selectedFile;
+
+
+  const uploadStatus =
+    document.getElementById(
+      "uploadStatus"
+    );
+
+
+  uploadStatus.style.display =
+    "block";
+
+
+  uploadStatus.textContent =
+    "Mengunggah " +
+    file.name +
+    "...";
+
+
+  try {
+
+    const extension =
+      file.name.includes(".")
+        ? file.name
+            .split(".")
+            .pop()
+        : "file";
+
+
+    const filePath =
+      myId +
+      "/" +
+      crypto.randomUUID() +
+      "." +
+      extension;
+
+
+    const {
+      error:
+        uploadError
+    } =
+      await supabaseClient
+        .storage
+        .from(
+          STORAGE_BUCKET
+        )
+        .upload(
+          filePath,
+          file,
+          {
+            cacheControl:
+              "3600",
+
+            upsert:
+              false,
+
+            contentType:
+              file.type
+          }
+        );
+
+
+    if (
+      uploadError
+    ) {
+
+      throw uploadError;
+
+    }
+
+
+    const {
+      data:
+        urlData
+    } =
+      supabaseClient
+        .storage
+        .from(
+          STORAGE_BUCKET
+        )
+        .getPublicUrl(
+          filePath
+        );
+
+
+    const publicUrl =
+      urlData.publicUrl;
+
+
+    const mediaType =
+      file.type.startsWith(
+        "image/"
+      )
+        ? "image"
+        : "video";
+
+
+    const mediaMessage =
+      JSON.stringify({
+
+        type:
+          "media",
+
+        mediaType:
+          mediaType,
+
+        url:
+          publicUrl,
+
+        name:
+          file.name,
+
+        viewOnce:
+          selectedViewOnce,
+
+        viewedBy:
+          []
+
+      });
+
+
+    const {
+      error:
+        messageError
+    } =
+      await supabaseClient
+        .from(
+          "messages"
+        )
+        .insert({
+
+          sender:
+            myId,
+
+          message:
+            mediaMessage
+
+        });
+
+
+    if (
+      messageError
+    ) {
+
+      throw messageError;
+
+    }
+
+
+    cancelFile();
+
+
+    uploadStatus.style.display =
+      "none";
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      error
+    );
+
+
+    alert(
+      "File gagal dikirim:\n" +
+      error.message
+    );
+
+
+    uploadStatus.style.display =
+      "none";
+
+  }
+
+}
+
+
+/* =====================================
+   REALTIME CHAT
+===================================== */
 
 function subscribeChat() {
 
+  if (
+    chatChannel
+  ) {
+
+    supabaseClient.removeChannel(
+      chatChannel
+    );
+
+  }
+
+
   chatChannel =
     supabaseClient
-      .channel("chat-room-" + myId)
+      .channel(
+        "chat-room-global"
+      )
 
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
-          schema: "public",
-          table: "messages"
-        },
-        payload => {
+          event:
+            "INSERT",
 
-          displayMessage(
+          schema:
+            "public",
+
+          table:
+            "messages"
+        },
+
+        async payload => {
+
+          await displayMessage(
             payload.new
           );
+
 
           scrollBottom();
 
         }
+
+      )
+
+      .on(
+        "postgres_changes",
+        {
+          event:
+            "UPDATE",
+
+          schema:
+            "public",
+
+          table:
+            "messages"
+        },
+
+        async payload => {
+
+          /*
+            Update diperlukan supaya
+            status sekali lihat berubah
+            setelah dibuka.
+          */
+
+          await refreshChat();
+
+        }
+
       )
 
       .subscribe();
@@ -585,511 +1484,281 @@ function subscribeChat() {
 }
 
 
-// ===============================
-// SCROLL
-// ===============================
+/* =====================================
+   REFRESH CHAT
+===================================== */
+
+async function refreshChat() {
+
+  const chat =
+    document.getElementById(
+      "chat"
+    );
+
+
+  chat.innerHTML =
+    "";
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "messages"
+      )
+      .select("*")
+      .order(
+        "created_at",
+        {
+          ascending:
+            true
+        }
+      );
+
+
+  if (
+    error
+  ) {
+
+    console.error(
+      error
+    );
+
+    return;
+
+  }
+
+
+  for (
+    const message of data
+  ) {
+
+    await displayMessage(
+      message
+    );
+
+  }
+
+
+  scrollBottom();
+
+}
+
+
+/* =====================================
+   VIEW ONCE
+===================================== */
+
+async function openViewOnce(
+  message,
+  mediaData
+) {
+
+  if (
+    message.sender ===
+    myId
+  ) {
+
+    openImage(
+      mediaData.url
+    );
+
+    return;
+
+  }
+
+
+  const viewedBy =
+    Array.isArray(
+      mediaData.viewedBy
+    )
+      ? mediaData.viewedBy
+      : [];
+
+
+  if (
+    viewedBy.includes(
+      myId
+    )
+  ) {
+
+    alert(
+      "Gambar sekali lihat sudah dibuka."
+    );
+
+
+    return;
+
+  }
+
+
+  /*
+    Tandai SEBELUM membuka.
+    Ini mencegah klik berulang
+    secara cepat.
+  */
+
+  const updatedMedia = {
+
+    ...mediaData,
+
+    viewedBy: [
+      ...viewedBy,
+      myId
+    ]
+
+  };
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "messages"
+      )
+      .update({
+
+        message:
+          JSON.stringify(
+            updatedMedia
+          )
+
+      })
+      .eq(
+        "id",
+        message.id
+      );
+
+
+  if (
+    error
+  ) {
+
+    alert(
+      "Gambar tidak bisa dibuka."
+    );
+
+
+    console.error(
+      error
+    );
+
+
+    return;
+
+  }
+
+
+  openImage(
+    mediaData.url
+  );
+
+
+  setTimeout(
+    () => {
+
+      refreshChat();
+
+    },
+    500
+  );
+
+}
+
+
+/* =====================================
+   BUKA GAMBAR
+===================================== */
+
+function openImage(
+  url
+) {
+
+  const container =
+    document.getElementById(
+      "fullscreenContent"
+    );
+
+
+  container.innerHTML =
+    "";
+
+
+  const img =
+    document.createElement(
+      "img"
+    );
+
+
+  img.src =
+    url;
+
+
+  container.appendChild(
+    img
+  );
+
+
+  document.getElementById(
+    "fullscreenMedia"
+  ).style.display =
+    "flex";
+
+}
+
+
+/* =====================================
+   TUTUP FULLSCREEN
+===================================== */
+
+function closeFullscreen(
+  event
+) {
+
+  if (
+    event &&
+    event.target !==
+      event.currentTarget
+  ) {
+
+    return;
+
+  }
+
+
+  document.getElementById(
+    "fullscreenMedia"
+  ).style.display =
+    "none";
+
+
+  document.getElementById(
+    "fullscreenContent"
+  ).innerHTML =
+    "";
+
+}
+
+
+/* =====================================
+   SCROLL
+===================================== */
 
 function scrollBottom() {
 
   const chat =
-    document.getElementById("chat");
+    document.getElementById(
+      "chat"
+    );
+
 
   chat.scrollTop =
     chat.scrollHeight;
 
 }
-
-
-// ===============================
-// VIDEO CALL
-// ===============================
-
-const rtcConfig = {
-
-  iceServers: [
-
-    {
-      urls:
-        "stun:stun.l.google.com:19302"
-    }
-
-  ]
-
-};
-
-
-// MULAI CALL
-async function startCall() {
-
-  try {
-
-    localStream =
-      await navigator.mediaDevices.getUserMedia({
-
-        video: true,
-
-        audio: true
-
-      });
-
-
-    document.getElementById(
-      "localVideo"
-    ).srcObject =
-      localStream;
-
-
-    document.getElementById(
-      "callArea"
-    ).style.display =
-      "block";
-
-
-    peerConnection =
-      new RTCPeerConnection(
-        rtcConfig
-      );
-
-
-    localStream
-      .getTracks()
-      .forEach(track => {
-
-        peerConnection.addTrack(
-          track,
-          localStream
-        );
-
-      });
-
-
-    peerConnection.ontrack =
-      event => {
-
-        document.getElementById(
-          "remoteVideo"
-        ).srcObject =
-          event.streams[0];
-
-      };
-
-
-    peerConnection.onicecandidate =
-      event => {
-
-        if (!event.candidate)
-          return;
-
-
-        sendSignal({
-
-          type: "candidate",
-
-          candidate:
-            event.candidate
-
-        });
-
-      };
-
-
-    setupCallChannel();
-
-
-    const offer =
-      await peerConnection
-        .createOffer();
-
-
-    await peerConnection
-      .setLocalDescription(
-        offer
-      );
-
-
-    sendSignal({
-
-      type: "offer",
-
-      offer: offer
-
-    });
-
-
-  } catch (error) {
-
-    alert(
-      "Kamera/mikrofon tidak bisa digunakan:\n" +
-      error.message
-    );
-
-  }
-
-}
-
-
-// CHANNEL VIDEO
-function setupCallChannel() {
-
-  if (callChannel)
-    return;
-
-
-  callChannel =
-    supabaseClient
-      .channel("video-call-room")
-
-      .on(
-        "broadcast",
-        {
-          event: "signal"
-        },
-        async ({ payload }) => {
-
-          if (
-            payload.sender === myId
-          )
-            return;
-
-
-          await handleSignal(
-            payload.signal
-          );
-
-        }
-      )
-
-      .subscribe();
-
-}
-
-
-// KIRIM SIGNAL
-function sendSignal(signal) {
-
-  if (!callChannel)
-    setupCallChannel();
-
-
-  if (!callChannel)
-    return;
-
-
-  callChannel.send({
-
-    type: "broadcast",
-
-    event: "signal",
-
-    payload: {
-
-      sender: myId,
-
-      signal: signal
-
-    }
-
-  });
-
-}
-
-
-// TERIMA SIGNAL
-async function handleSignal(signal) {
-
-  if (
-    signal.type === "offer"
-  ) {
-
-    if (!peerConnection) {
-
-      await createAnswerConnection();
-
-    }
-
-
-    await peerConnection
-      .setRemoteDescription(
-        signal.offer
-      );
-
-
-    const answer =
-      await peerConnection
-        .createAnswer();
-
-
-    await peerConnection
-      .setLocalDescription(
-        answer
-      );
-
-
-    sendSignal({
-
-      type: "answer",
-
-      answer: answer
-
-    });
-
-  }
-
-
-  if (
-    signal.type === "answer"
-  ) {
-
-    if (!peerConnection)
-      return;
-
-
-    await peerConnection
-      .setRemoteDescription(
-        signal.answer
-      );
-
-  }
-
-
-  if (
-    signal.type === "candidate"
-  ) {
-
-    if (!peerConnection)
-      return;
-
-
-    try {
-
-      await peerConnection
-        .addIceCandidate(
-          signal.candidate
-        );
-
-    } catch (error) {
-
-      console.error(error);
-
-    }
-
-  }
-
-}
-
-
-// BUAT CONNECTION PENERIMA
-async function createAnswerConnection() {
-
-  localStream =
-    await navigator.mediaDevices
-      .getUserMedia({
-
-        video: true,
-
-        audio: true
-
-      });
-
-
-  document.getElementById(
-    "localVideo"
-  ).srcObject =
-    localStream;
-
-
-  document.getElementById(
-    "callArea"
-  ).style.display =
-    "block";
-
-
-  peerConnection =
-    new RTCPeerConnection(
-      rtcConfig
-    );
-
-
-  localStream
-    .getTracks()
-    .forEach(track => {
-
-      peerConnection.addTrack(
-        track,
-        localStream
-      );
-
-    });
-
-
-  peerConnection.ontrack =
-    event => {
-
-      document.getElementById(
-        "remoteVideo"
-      ).srcObject =
-        event.streams[0];
-
-    };
-
-
-  peerConnection.onicecandidate =
-    event => {
-
-      if (!event.candidate)
-        return;
-
-
-      sendSignal({
-
-        type: "candidate",
-
-        candidate:
-          event.candidate
-
-      });
-
-    };
-
-
-  setupCallChannel();
-
-}
-
-
-// MATIKAN MIC
-function toggleMic() {
-
-  if (!localStream)
-    return;
-
-
-  const audio =
-    localStream
-      .getAudioTracks()[0];
-
-
-  if (audio)
-    audio.enabled =
-      !audio.enabled;
-
-}
-
-
-// MATIKAN KAMERA
-function toggleCamera() {
-
-  if (!localStream)
-    return;
-
-
-  const video =
-    localStream
-      .getVideoTracks()[0];
-
-
-  if (video)
-    video.enabled =
-      !video.enabled;
-
-}
-
-
-// AKHIRI CALL
-function endCall() {
-
-  if (peerConnection) {
-
-    peerConnection.close();
-
-    peerConnection =
-      null;
-
-  }
-
-
-  if (localStream) {
-
-    localStream
-      .getTracks()
-      .forEach(track =>
-        track.stop()
-      );
-
-    localStream =
-      null;
-
-  }
-
-
-  if (callChannel) {
-
-    supabaseClient
-      .removeChannel(
-        callChannel
-      );
-
-    callChannel =
-      null;
-
-  }
-
-
-  document.getElementById(
-    "localVideo"
-  ).srcObject =
-    null;
-
-
-  document.getElementById(
-    "remoteVideo"
-  ).srcObject =
-    null;
-
-
-  document.getElementById(
-    "callArea"
-  ).style.display =
-    "none";
-
-}
-
-
-// ===============================
-// TOMBOL VIDEO CALL
-// ===============================
-
-const videoCallButton =
-  document.createElement("button");
-
-
-videoCallButton.textContent =
-  "Video Call";
-
-
-videoCallButton.style.position =
-  "fixed";
-
-
-videoCallButton.style.bottom =
-  "70px";
-
-
-videoCallButton.style.right =
-  "15px";
-
-
-videoCallButton.style.zIndex =
-  "999";
-
-
-videoCallButton.onclick =
-  startCall;
-
-
-document.body.appendChild(
-  videoCallButton
-);
 
 </script>
 
