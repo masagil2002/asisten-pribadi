@@ -40,14 +40,30 @@
       margin-bottom: 25px;
     }
 
+    input {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
     #accessPage input {
       width: 100%;
       margin-bottom: 10px;
     }
 
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
     #accessPage button {
       width: 100%;
-      margin-top: 5px;
     }
 
     #status {
@@ -65,18 +81,23 @@
     .header {
       padding: 15px;
       border-bottom: 1px solid #ddd;
-      font-size: 18px;
-      font-weight: bold;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-weight: bold;
     }
 
-    .room {
-      font-size: 12px;
+    .header small {
+      display: block;
       color: #777;
       font-weight: normal;
       margin-top: 3px;
+    }
+
+    .header button {
+      background: #d33;
+      padding: 7px 10px;
+      font-size: 12px;
     }
 
     #chat {
@@ -106,12 +127,6 @@
       margin-right: auto;
     }
 
-    .sender {
-      font-size: 11px;
-      opacity: 0.65;
-      margin-bottom: 4px;
-    }
-
     .input-area {
       display: flex;
       padding: 10px;
@@ -123,27 +138,51 @@
       flex: 1;
     }
 
-    input {
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 12px 18px;
-      border: none;
-      border-radius: 10px;
+    .call-area {
+      display: none;
+      position: relative;
+      padding: 10px;
       background: #111;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
     }
 
-    .leave {
-      padding: 7px 10px;
-      font-size: 12px;
+    #remoteVideo {
+      width: 100%;
+      max-height: 70vh;
+      background: #000;
+      border-radius: 12px;
+      display: block;
+    }
+
+    #localVideo {
+      position: absolute;
+      width: 120px;
+      right: 20px;
+      top: 20px;
+      background: #000;
+      border-radius: 10px;
+    }
+
+    .call-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .call-buttons button {
+      flex: 1;
+    }
+
+    .end-call {
       background: #d33;
+    }
+
+    #screenNotice {
+      display: none;
+      padding: 10px;
+      background: #d33;
+      color: white;
+      font-size: 13px;
+      text-align: center;
     }
   </style>
 </head>
@@ -152,26 +191,21 @@
 
 <div class="app">
 
+  <!-- MASUK RUANG -->
   <div id="accessPage">
 
-    <h2>no name</h2>
-
-    <input
-      id="name"
-      type="text"
-      placeholder="Nama kamu"
-      maxlength="30"
-    >
+    <h2>Chat Pribadi</h2>
 
     <input
       id="pin"
       type="password"
-      placeholder="ruang chat"
-      maxlength="20"
+      placeholder="Kode ruang"
+      maxlength="30"
+      onkeydown="if(event.key === 'Enter') enterChat()"
     >
 
     <button onclick="enterChat()">
-      Masuk Chat
+      Masuk
     </button>
 
     <div id="status"></div>
@@ -179,18 +213,61 @@
   </div>
 
 
+  <!-- CHAT -->
   <div id="chatPage">
 
     <div class="header">
 
       <div>
-        <div>endut</div>
-        <div class="room">private room</div>
+        Chat Pribadi
+        <small>Ruang privat</small>
       </div>
 
-      <button class="leave" onclick="leaveChat()">
+      <button onclick="leaveChat()">
         Keluar
       </button>
+
+    </div>
+
+
+    <!-- VIDEO CALL -->
+    <div id="callArea">
+
+      <div id="screenNotice">
+        ⚠️ Aktivitas berbagi layar terdeteksi.
+      </div>
+
+      <video
+        id="remoteVideo"
+        autoplay
+        playsinline
+      ></video>
+
+      <video
+        id="localVideo"
+        autoplay
+        muted
+        playsinline
+      ></video>
+
+      <div class="call-buttons">
+
+        <button onclick="toggleMic()">
+          Mic
+        </button>
+
+        <button onclick="toggleCamera()">
+          Kamera
+        </button>
+
+        <button
+          class="end-call"
+          onclick="endCall()"
+        >
+          Tutup
+        </button>
+
+      </div>
 
     </div>
 
@@ -209,7 +286,7 @@
       >
 
       <button onclick="sendMessage()">
-        Send
+        Kirim
       </button>
 
     </div>
@@ -234,18 +311,28 @@ const supabaseClient =
   );
 
 
-let myName = "";
+// ===============================
+// PENGATURAN
+// ===============================
+
+const CHAT_PIN = "4827";
+
+let myId = "";
+
+let chatChannel = null;
+
+let callChannel = null;
+
+let peerConnection = null;
+
+let localStream = null;
 
 
-// GANTI PIN DI SINI
-const CHAT_PIN = "1234";
+// ===============================
+// MASUK
+// ===============================
 
-
-// MASUK CHAT
 function enterChat() {
-
-  const name =
-    document.getElementById("name").value.trim();
 
   const pin =
     document.getElementById("pin").value.trim();
@@ -254,19 +341,43 @@ function enterChat() {
     document.getElementById("status");
 
 
-  if (!name) {
-    status.textContent = "Masukkan nama.";
+  if (!pin) {
+
+    status.textContent =
+      "Masukkan kode ruang.";
+
     return;
+
   }
 
 
   if (pin !== CHAT_PIN) {
-    status.textContent = "PIN salah.";
+
+    status.textContent =
+      "Kode ruang salah.";
+
     return;
+
   }
 
 
-  myName = name;
+  // ID otomatis
+  myId =
+    localStorage.getItem("chat_user_id");
+
+
+  if (!myId) {
+
+    myId =
+      crypto.randomUUID();
+
+    localStorage.setItem(
+      "chat_user_id",
+      myId
+    );
+
+  }
+
 
   document.getElementById("accessPage").style.display =
     "none";
@@ -276,14 +387,34 @@ function enterChat() {
 
 
   loadMessages();
-  subscribeRealtime();
+
+  subscribeChat();
+
 }
 
 
+// ===============================
 // KELUAR
+// ===============================
+
 function leaveChat() {
 
-  myName = "";
+  endCall();
+
+
+  if (chatChannel) {
+
+    supabaseClient.removeChannel(
+      chatChannel
+    );
+
+    chatChannel = null;
+
+  }
+
+
+  myId = "";
+
 
   document.getElementById("chatPage").style.display =
     "none";
@@ -291,15 +422,24 @@ function leaveChat() {
   document.getElementById("accessPage").style.display =
     "block";
 
-  document.getElementById("chat").innerHTML = "";
+  document.getElementById("pin").value =
+    "";
+
+  document.getElementById("chat").innerHTML =
+    "";
+
 }
 
 
+// ===============================
 // LOAD PESAN
+// ===============================
+
 async function loadMessages() {
 
   const chat =
     document.getElementById("chat");
+
 
   chat.innerHTML = "";
 
@@ -316,28 +456,28 @@ async function loadMessages() {
   if (error) {
 
     chat.innerHTML =
-      "<div>Gagal mengambil pesan: " +
-      error.message +
-      "</div>";
-
-    console.error(error);
+      "Gagal mengambil pesan: " +
+      error.message;
 
     return;
+
   }
 
 
-  data.forEach(message => {
-
-    displayMessage(message);
-
-  });
+  data.forEach(
+    displayMessage
+  );
 
 
   scrollBottom();
+
 }
 
 
+// ===============================
 // TAMPILKAN PESAN
+// ===============================
+
 function displayMessage(message) {
 
   const chat =
@@ -351,104 +491,104 @@ function displayMessage(message) {
   box.className =
     "message " +
     (
-      message.sender === myName
+      message.sender === myId
         ? "mine"
         : "other"
     );
 
 
-  const sender =
-    document.createElement("div");
-
-  sender.className =
-    "sender";
-
-  sender.textContent =
-    message.sender;
-
-
-  const text =
-    document.createElement("div");
-
-  text.textContent =
+  box.textContent =
     message.message;
 
 
-  box.appendChild(sender);
-  box.appendChild(text);
-
   chat.appendChild(box);
+
 }
 
 
+// ===============================
 // KIRIM PESAN
+// ===============================
+
 async function sendMessage() {
 
   const input =
     document.getElementById("message");
 
+
   const text =
     input.value.trim();
 
+
   if (!text) return;
 
-  if (!myName) return;
 
   input.value = "";
 
-  const { data, error } =
+
+  const { error } =
     await supabaseClient
       .from("messages")
       .insert({
-        sender: myName,
+
+        sender: myId,
+
         message: text
-      })
-      .select();
+
+      });
+
 
   if (error) {
 
     alert(
-      "SUPABASE ERROR:\n\n" +
+      "Pesan gagal dikirim:\n" +
       error.message
     );
 
-    console.error(error);
-
     input.value = text;
 
-    return;
   }
 
-  console.log("BERHASIL:", data);
-}
-// REALTIME
-function subscribeRealtime() {
-
-  supabaseClient
-    .channel("chat-room")
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "messages"
-      },
-      payload => {
-
-        displayMessage(
-          payload.new
-        );
-
-        scrollBottom();
-
-      }
-    )
-    .subscribe();
-
 }
 
 
+// ===============================
+// REALTIME CHAT
+// ===============================
+
+function subscribeChat() {
+
+  chatChannel =
+    supabaseClient
+      .channel("chat-room-" + myId)
+
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages"
+        },
+        payload => {
+
+          displayMessage(
+            payload.new
+          );
+
+          scrollBottom();
+
+        }
+      )
+
+      .subscribe();
+
+}
+
+
+// ===============================
 // SCROLL
+// ===============================
+
 function scrollBottom() {
 
   const chat =
@@ -456,7 +596,500 @@ function scrollBottom() {
 
   chat.scrollTop =
     chat.scrollHeight;
+
 }
+
+
+// ===============================
+// VIDEO CALL
+// ===============================
+
+const rtcConfig = {
+
+  iceServers: [
+
+    {
+      urls:
+        "stun:stun.l.google.com:19302"
+    }
+
+  ]
+
+};
+
+
+// MULAI CALL
+async function startCall() {
+
+  try {
+
+    localStream =
+      await navigator.mediaDevices.getUserMedia({
+
+        video: true,
+
+        audio: true
+
+      });
+
+
+    document.getElementById(
+      "localVideo"
+    ).srcObject =
+      localStream;
+
+
+    document.getElementById(
+      "callArea"
+    ).style.display =
+      "block";
+
+
+    peerConnection =
+      new RTCPeerConnection(
+        rtcConfig
+      );
+
+
+    localStream
+      .getTracks()
+      .forEach(track => {
+
+        peerConnection.addTrack(
+          track,
+          localStream
+        );
+
+      });
+
+
+    peerConnection.ontrack =
+      event => {
+
+        document.getElementById(
+          "remoteVideo"
+        ).srcObject =
+          event.streams[0];
+
+      };
+
+
+    peerConnection.onicecandidate =
+      event => {
+
+        if (!event.candidate)
+          return;
+
+
+        sendSignal({
+
+          type: "candidate",
+
+          candidate:
+            event.candidate
+
+        });
+
+      };
+
+
+    setupCallChannel();
+
+
+    const offer =
+      await peerConnection
+        .createOffer();
+
+
+    await peerConnection
+      .setLocalDescription(
+        offer
+      );
+
+
+    sendSignal({
+
+      type: "offer",
+
+      offer: offer
+
+    });
+
+
+  } catch (error) {
+
+    alert(
+      "Kamera/mikrofon tidak bisa digunakan:\n" +
+      error.message
+    );
+
+  }
+
+}
+
+
+// CHANNEL VIDEO
+function setupCallChannel() {
+
+  if (callChannel)
+    return;
+
+
+  callChannel =
+    supabaseClient
+      .channel("video-call-room")
+
+      .on(
+        "broadcast",
+        {
+          event: "signal"
+        },
+        async ({ payload }) => {
+
+          if (
+            payload.sender === myId
+          )
+            return;
+
+
+          await handleSignal(
+            payload.signal
+          );
+
+        }
+      )
+
+      .subscribe();
+
+}
+
+
+// KIRIM SIGNAL
+function sendSignal(signal) {
+
+  if (!callChannel)
+    setupCallChannel();
+
+
+  if (!callChannel)
+    return;
+
+
+  callChannel.send({
+
+    type: "broadcast",
+
+    event: "signal",
+
+    payload: {
+
+      sender: myId,
+
+      signal: signal
+
+    }
+
+  });
+
+}
+
+
+// TERIMA SIGNAL
+async function handleSignal(signal) {
+
+  if (
+    signal.type === "offer"
+  ) {
+
+    if (!peerConnection) {
+
+      await createAnswerConnection();
+
+    }
+
+
+    await peerConnection
+      .setRemoteDescription(
+        signal.offer
+      );
+
+
+    const answer =
+      await peerConnection
+        .createAnswer();
+
+
+    await peerConnection
+      .setLocalDescription(
+        answer
+      );
+
+
+    sendSignal({
+
+      type: "answer",
+
+      answer: answer
+
+    });
+
+  }
+
+
+  if (
+    signal.type === "answer"
+  ) {
+
+    if (!peerConnection)
+      return;
+
+
+    await peerConnection
+      .setRemoteDescription(
+        signal.answer
+      );
+
+  }
+
+
+  if (
+    signal.type === "candidate"
+  ) {
+
+    if (!peerConnection)
+      return;
+
+
+    try {
+
+      await peerConnection
+        .addIceCandidate(
+          signal.candidate
+        );
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+
+  }
+
+}
+
+
+// BUAT CONNECTION PENERIMA
+async function createAnswerConnection() {
+
+  localStream =
+    await navigator.mediaDevices
+      .getUserMedia({
+
+        video: true,
+
+        audio: true
+
+      });
+
+
+  document.getElementById(
+    "localVideo"
+  ).srcObject =
+    localStream;
+
+
+  document.getElementById(
+    "callArea"
+  ).style.display =
+    "block";
+
+
+  peerConnection =
+    new RTCPeerConnection(
+      rtcConfig
+    );
+
+
+  localStream
+    .getTracks()
+    .forEach(track => {
+
+      peerConnection.addTrack(
+        track,
+        localStream
+      );
+
+    });
+
+
+  peerConnection.ontrack =
+    event => {
+
+      document.getElementById(
+        "remoteVideo"
+      ).srcObject =
+        event.streams[0];
+
+    };
+
+
+  peerConnection.onicecandidate =
+    event => {
+
+      if (!event.candidate)
+        return;
+
+
+      sendSignal({
+
+        type: "candidate",
+
+        candidate:
+          event.candidate
+
+      });
+
+    };
+
+
+  setupCallChannel();
+
+}
+
+
+// MATIKAN MIC
+function toggleMic() {
+
+  if (!localStream)
+    return;
+
+
+  const audio =
+    localStream
+      .getAudioTracks()[0];
+
+
+  if (audio)
+    audio.enabled =
+      !audio.enabled;
+
+}
+
+
+// MATIKAN KAMERA
+function toggleCamera() {
+
+  if (!localStream)
+    return;
+
+
+  const video =
+    localStream
+      .getVideoTracks()[0];
+
+
+  if (video)
+    video.enabled =
+      !video.enabled;
+
+}
+
+
+// AKHIRI CALL
+function endCall() {
+
+  if (peerConnection) {
+
+    peerConnection.close();
+
+    peerConnection =
+      null;
+
+  }
+
+
+  if (localStream) {
+
+    localStream
+      .getTracks()
+      .forEach(track =>
+        track.stop()
+      );
+
+    localStream =
+      null;
+
+  }
+
+
+  if (callChannel) {
+
+    supabaseClient
+      .removeChannel(
+        callChannel
+      );
+
+    callChannel =
+      null;
+
+  }
+
+
+  document.getElementById(
+    "localVideo"
+  ).srcObject =
+    null;
+
+
+  document.getElementById(
+    "remoteVideo"
+  ).srcObject =
+    null;
+
+
+  document.getElementById(
+    "callArea"
+  ).style.display =
+    "none";
+
+}
+
+
+// ===============================
+// TOMBOL VIDEO CALL
+// ===============================
+
+const videoCallButton =
+  document.createElement("button");
+
+
+videoCallButton.textContent =
+  "Video Call";
+
+
+videoCallButton.style.position =
+  "fixed";
+
+
+videoCallButton.style.bottom =
+  "70px";
+
+
+videoCallButton.style.right =
+  "15px";
+
+
+videoCallButton.style.zIndex =
+  "999";
+
+
+videoCallButton.onclick =
+  startCall;
+
+
+document.body.appendChild(
+  videoCallButton
+);
 
 </script>
 
