@@ -1,1762 +1,1255 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat Pribadi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Chat Pribadi</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      height: 100vh;
-    }
-
-    .app {
-      max-width: 700px;
-      height: 100vh;
-      margin: auto;
-      background: white;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #accessPage {
-      padding: 30px 20px;
-      margin: auto;
-      width: 100%;
-      max-width: 400px;
-    }
-
-    #accessPage h2 {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    input {
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 16px;
-    }
-
-    #accessPage input {
-      width: 100%;
-      margin-bottom: 10px;
-    }
-
-    button {
-      padding: 12px 18px;
-      border: none;
-      border-radius: 10px;
-      background: #111;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #accessPage button {
-      width: 100%;
-    }
-
-    #status {
-      text-align: center;
-      margin-top: 15px;
-      font-size: 14px;
-    }
-
-    #chatPage {
-      display: none;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    .header {
-      padding: 15px;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: bold;
-    }
-
-    .header small {
-      display: block;
-      color: #777;
-      font-weight: normal;
-      margin-top: 3px;
-    }
-
-    .header button {
-      background: #d33;
-      padding: 7px 10px;
-      font-size: 12px;
-    }
-
-    #chat {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-    }
-
-    .message {
-      margin-bottom: 10px;
-      padding: 10px 14px;
-      border-radius: 14px;
-      max-width: 80%;
-      line-height: 1.4;
-      word-wrap: break-word;
-    }
-
-    .mine {
-      background: #111;
-      color: white;
-      margin-left: auto;
-    }
-
-    .other {
-      background: #e9e9e9;
-      color: #111;
-      margin-right: auto;
-    }
-
-    .message img {
-      display: block;
-      max-width: 100%;
-      max-height: 350px;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-
-    .message video {
-      display: block;
-      max-width: 100%;
-      max-height: 350px;
-      border-radius: 10px;
-    }
-
-    .media-name {
-      font-size: 12px;
-      margin-top: 6px;
-      opacity: 0.7;
-    }
-
-    .view-once-button {
-      width: 100%;
-      background: #222;
-    }
-
-    .expired {
-      opacity: 0.65;
-      font-size: 13px;
-    }
-
-    .input-area {
-      display: flex;
-      padding: 10px;
-      border-top: 1px solid #ddd;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .input-area input[type="text"] {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .media-button {
-      width: 48px;
-      height: 46px;
-      padding: 0;
-      font-size: 22px;
-      background: #eee;
-      color: #111;
-      flex-shrink: 0;
-    }
-
-    .send-button {
-      flex-shrink: 0;
-    }
-
-    #fileInput {
-      display: none;
-    }
-
-    #uploadStatus {
-      display: none;
-      padding: 8px 12px;
-      font-size: 13px;
-      color: #555;
-      background: #f5f5f5;
-      border-top: 1px solid #ddd;
-    }
-
-    .preview {
-      display: none;
-      padding: 8px 10px;
-      border-top: 1px solid #ddd;
-      background: #fafafa;
-      font-size: 13px;
-    }
-
-    .preview button {
-      background: #d33;
-      padding: 5px 9px;
-      margin-left: 8px;
-      font-size: 12px;
-    }
-
-    #mediaMenu {
-      display: none;
-      position: fixed;
-      bottom: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 14px;
-      padding: 10px;
-      box-shadow: 0 5px 20px rgba(0,0,0,.2);
-      z-index: 5000;
-      width: 240px;
-    }
-
-    #mediaMenu button {
-      width: 100%;
-      margin-bottom: 7px;
-    }
-
-    #mediaMenu button:last-child {
-      margin-bottom: 0;
-    }
-
-    .fullscreen-media {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.94);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .fullscreen-media img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      border-radius: 5px;
-    }
-
-    .close-media {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: #d33;
-      font-size: 20px;
-      width: 45px;
-      height: 45px;
-      padding: 0;
-      border-radius: 50%;
-      z-index: 2;
-    }
-
-    .view-once-label {
-      font-size: 13px;
-      margin-top: 6px;
-      opacity: .8;
-    }
-  </style>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f2f2f2;
+  height:100vh;
+}
+.app{
+  max-width:700px;
+  height:100vh;
+  margin:auto;
+  background:white;
+  display:flex;
+  flex-direction:column;
+}
+#accessPage{
+  padding:30px 20px;
+  margin:auto;
+  width:100%;
+  max-width:400px;
+}
+#accessPage h2{
+  text-align:center;
+  margin-bottom:25px;
+}
+input{
+  padding:12px;
+  border:1px solid #ccc;
+  border-radius:10px;
+  font-size:16px;
+}
+#accessPage input{
+  width:100%;
+  margin-bottom:10px;
+}
+button{
+  padding:12px 18px;
+  border:0;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
+#accessPage button{width:100%}
+#status{
+  text-align:center;
+  margin-top:15px;
+  font-size:14px;
+}
+#chatPage{
+  display:none;
+  flex-direction:column;
+  height:100%;
+}
+.header{
+  padding:15px;
+  border-bottom:1px solid #ddd;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:bold;
+}
+.header small{
+  display:block;
+  color:#777;
+  font-weight:normal;
+  margin-top:3px;
+}
+.header button{
+  background:#d33;
+  padding:7px 10px;
+  font-size:12px;
+}
+#chat{
+  flex:1;
+  overflow-y:auto;
+  padding:16px;
+}
+.message{
+  margin-bottom:10px;
+  padding:10px 14px;
+  border-radius:14px;
+  max-width:80%;
+  line-height:1.4;
+  word-wrap:break-word;
+}
+.mine{
+  background:#111;
+  color:white;
+  margin-left:auto;
+}
+.other{
+  background:#e9e9e9;
+  color:#111;
+  margin-right:auto;
+}
+.message img{
+  display:block;
+  max-width:100%;
+  max-height:350px;
+  border-radius:10px;
+  cursor:pointer;
+}
+.message video{
+  display:block;
+  max-width:100%;
+  max-height:350px;
+  border-radius:10px;
+}
+.media-name{
+  font-size:12px;
+  margin-top:6px;
+  opacity:.7;
+}
+.view-once{
+  width:100%;
+  background:#222;
+}
+.expired{
+  opacity:.65;
+  font-size:13px;
+}
+.input-area{
+  display:flex;
+  padding:10px;
+  border-top:1px solid #ddd;
+  gap:8px;
+  align-items:center;
+}
+.input-area input[type=text]{
+  flex:1;
+  min-width:0;
+}
+.media-button{
+  width:48px;
+  height:46px;
+  padding:0;
+  font-size:22px;
+  background:#eee;
+  color:#111;
+}
+#fileInput{display:none}
+#uploadStatus{
+  display:none;
+  padding:8px 12px;
+  font-size:13px;
+  color:#555;
+  background:#f5f5f5;
+}
+.preview{
+  display:none;
+  padding:8px 10px;
+  border-top:1px solid #ddd;
+  background:#fafafa;
+  font-size:13px;
+}
+.preview button{
+  background:#d33;
+  padding:5px 9px;
+  margin-left:8px;
+  font-size:12px;
+}
+#mediaMenu{
+  display:none;
+  position:fixed;
+  bottom:70px;
+  left:50%;
+  transform:translateX(-50%);
+  background:white;
+  border:1px solid #ddd;
+  border-radius:14px;
+  padding:10px;
+  box-shadow:0 5px 20px rgba(0,0,0,.2);
+  z-index:5000;
+  width:240px;
+}
+#mediaMenu button{
+  width:100%;
+  margin-bottom:7px;
+}
+#mediaMenu button:last-child{
+  margin-bottom:0;
+}
+#viewer{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:#000;
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+}
+#viewer img{
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+}
+#closeViewer{
+  position:absolute;
+  top:15px;
+  right:15px;
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  background:#d33;
+  font-size:22px;
+  padding:0;
+}
+</style>
 </head>
 
 <body>
 
 <div class="app">
 
-  <!-- ========================= -->
-  <!-- HALAMAN MASUK -->
-  <!-- ========================= -->
+<div id="accessPage">
+<h2>Chat Pribadi</h2>
 
-  <div id="accessPage">
+<input
+ id="pin"
+ type="password"
+ placeholder="Kode ruang"
+ maxlength="30"
+ onkeydown="if(event.key==='Enter')enterChat()"
+>
 
-    <h2>Chat Pribadi</h2>
+<button onclick="enterChat()">Masuk</button>
 
-    <input
-      id="pin"
-      type="password"
-      placeholder="Kode ruang"
-      maxlength="30"
-      onkeydown="if(event.key === 'Enter') enterChat()"
-    >
-
-    <button onclick="enterChat()">
-      Masuk
-    </button>
-
-    <div id="status"></div>
-
-  </div>
-
-
-  <!-- ========================= -->
-  <!-- HALAMAN CHAT -->
-  <!-- ========================= -->
-
-  <div id="chatPage">
-
-    <div class="header">
-
-      <div>
-        Chat Pribadi
-        <small>Ruang privat</small>
-      </div>
-
-      <button onclick="leaveChat()">
-        Keluar
-      </button>
-
-    </div>
-
-
-    <div id="chat"></div>
-
-
-    <div id="uploadStatus">
-      Mengunggah...
-    </div>
-
-
-    <div
-      id="preview"
-      class="preview"
-    >
-
-      <span id="previewName"></span>
-
-      <button onclick="cancelFile()">
-        Batal
-      </button>
-
-    </div>
-
-
-    <div class="input-area">
-
-      <input
-        id="message"
-        type="text"
-        placeholder="Tulis pesan..."
-        maxlength="2000"
-        onkeydown="if(event.key === 'Enter') sendMessage()"
-      >
-
-
-      <input
-        id="fileInput"
-        type="file"
-        accept="image/*,video/*"
-        onchange="selectFile(event)"
-      >
-
-
-      <button
-        class="media-button"
-        onclick="openMediaMenu()"
-        title="Kirim media"
-      >
-        📎
-      </button>
-
-
-      <button
-        class="send-button"
-        onclick="sendMessage()"
-      >
-        Kirim
-      </button>
-
-    </div>
-
-  </div>
-
+<div id="status"></div>
 </div>
 
 
-<!-- ========================= -->
-<!-- MENU MEDIA -->
-<!-- ========================= -->
+<div id="chatPage">
+
+<div class="header">
+<div>
+Chat Pribadi
+<small>Ruang privat</small>
+</div>
+
+<button onclick="leaveChat()">Keluar</button>
+</div>
+
+<div id="chat"></div>
+
+<div id="uploadStatus"></div>
+
+<div id="preview">
+<span id="previewName"></span>
+<button onclick="cancelFile()">Batal</button>
+</div>
+
+<div class="input-area">
+
+<input
+ id="message"
+ type="text"
+ placeholder="Tulis pesan..."
+ maxlength="2000"
+ onkeydown="if(event.key==='Enter')sendMessage()"
+>
+
+<input
+ id="fileInput"
+ type="file"
+ accept="image/*,video/*"
+ onchange="selectFile(event)"
+>
+
+<button
+ class="media-button"
+ onclick="openMediaMenu()"
+>
+📎
+</button>
+
+<button onclick="sendMessage()">Kirim</button>
+
+</div>
+
+</div>
+</div>
+
 
 <div id="mediaMenu">
 
-  <button onclick="chooseMedia(false)">
-    🖼️ Kirim gambar / video
-  </button>
+<button onclick="chooseMedia(false)">
+🖼️ Kirim gambar / video
+</button>
 
-  <button onclick="chooseMedia(true)">
-    👁️ Gambar sekali lihat
-  </button>
+<button onclick="chooseMedia(true)">
+👁️ Gambar sekali lihat
+</button>
 
 </div>
 
 
-<!-- ========================= -->
-<!-- FULLSCREEN -->
-<!-- ========================= -->
+<div id="viewer">
 
-<div
-  id="fullscreenMedia"
-  class="fullscreen-media"
-  onclick="closeFullscreen(event)"
->
+<button id="closeViewer" onclick="closeViewer()">×</button>
 
-  <button
-    class="close-media"
-    onclick="closeFullscreen()"
-  >
-    ×
-  </button>
-
-  <div id="fullscreenContent"></div>
+<img id="viewerImage">
 
 </div>
 
 
 <script>
 
-/* =====================================
-   SUPABASE
-===================================== */
-
 const SUPABASE_URL =
-  "https://aymsvwvtyalewphcvvfb.supabase.co";
+"https://aymsvwvtyalewphcvvfb.supabase.co";
 
 const SUPABASE_KEY =
-  "sb_publishable_cAkNxO3QBbR2HaKLJPV6BQ_Zme9TIhz";
+"sb_publishable_cAkNxO3QBbR2HaKLJPV6BQ_Zme9TIhz";
 
 const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+const CHAT_PIN="4827";
+
+const BUCKET="chat-media";
+
+const FUNCTION_URL =
+SUPABASE_URL +
+"/functions/v1/view-once";
+
+let myId="";
+
+let chatChannel=null;
+
+let selectedFile=null;
+
+let selectedViewOnce=false;
 
 
-/* =====================================
-   PENGATURAN
-===================================== */
-
-const CHAT_PIN =
-  "4827";
-
-const STORAGE_BUCKET =
-  "chat-media";
-
-let myId =
-  "";
-
-let chatChannel =
-  null;
-
-let selectedFile =
-  null;
-
-let selectedViewOnce =
-  false;
-
-
-/* =====================================
+/* =========================
    MASUK
-===================================== */
+========================= */
 
-function enterChat() {
+function enterChat(){
 
-  const pin =
-    document.getElementById("pin")
-      .value
-      .trim();
+const pin=
+document.getElementById("pin").value.trim();
 
-  const status =
-    document.getElementById("status");
+const status=
+document.getElementById("status");
 
+if(!pin){
 
-  if (!pin) {
+status.textContent=
+"Masukkan kode ruang.";
 
-    status.textContent =
-      "Masukkan kode ruang.";
+return;
+}
 
-    return;
+if(pin!==CHAT_PIN){
 
-  }
+status.textContent=
+"Kode ruang salah.";
 
+return;
+}
 
-  if (pin !== CHAT_PIN) {
+myId=
+localStorage.getItem("chat_user_id");
 
-    status.textContent =
-      "Kode ruang salah.";
+if(!myId){
 
-    return;
+myId=
+crypto.randomUUID();
 
-  }
+localStorage.setItem(
+"chat_user_id",
+myId
+);
 
+}
 
-  myId =
-    localStorage.getItem(
-      "chat_user_id"
-    );
+document.getElementById(
+"accessPage"
+).style.display="none";
 
+document.getElementById(
+"chatPage"
+).style.display="flex";
 
-  if (!myId) {
+loadMessages();
 
-    myId =
-      crypto.randomUUID();
-
-    localStorage.setItem(
-      "chat_user_id",
-      myId
-    );
-
-  }
-
-
-  document.getElementById(
-    "accessPage"
-  ).style.display =
-    "none";
-
-
-  document.getElementById(
-    "chatPage"
-  ).style.display =
-    "flex";
-
-
-  loadMessages();
-
-  subscribeChat();
+subscribeChat();
 
 }
 
 
-/* =====================================
+/* =========================
    KELUAR
-===================================== */
+========================= */
 
-function leaveChat() {
+function leaveChat(){
 
-  if (chatChannel) {
+if(chatChannel){
 
-    supabaseClient.removeChannel(
-      chatChannel
-    );
+supabaseClient.removeChannel(
+chatChannel
+);
 
-    chatChannel =
-      null;
+chatChannel=null;
 
-  }
+}
 
+cancelFile();
 
-  cancelFile();
+document.getElementById(
+"chatPage"
+).style.display="none";
 
+document.getElementById(
+"accessPage"
+).style.display="block";
 
-  myId =
-    "";
+document.getElementById(
+"pin"
+).value="";
 
-
-  document.getElementById(
-    "chatPage"
-  ).style.display =
-    "none";
-
-
-  document.getElementById(
-    "accessPage"
-  ).style.display =
-    "block";
-
-
-  document.getElementById(
-    "pin"
-  ).value =
-    "";
-
-
-  document.getElementById(
-    "chat"
-  ).innerHTML =
-    "";
+document.getElementById(
+"chat"
+).innerHTML="";
 
 }
 
 
-/* =====================================
-   LOAD PESAN
-===================================== */
+/* =========================
+   LOAD
+========================= */
 
-async function loadMessages() {
+async function loadMessages(){
 
-  const chat =
-    document.getElementById(
-      "chat"
-    );
+const chat=
+document.getElementById("chat");
 
+chat.innerHTML="";
 
-  chat.innerHTML =
-    "";
+const {data,error}=
+await supabaseClient
+.from("messages")
+.select("*")
+.order("created_at",{
+ascending:true
+});
 
+if(error){
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("messages")
-      .select("*")
-      .order(
-        "created_at",
-        {
-          ascending: true
-        }
-      );
+chat.textContent=
+"Gagal mengambil pesan: "+
+error.message;
 
+return;
+}
 
-  if (error) {
+for(const message of data){
 
-    chat.innerHTML =
-      "Gagal mengambil pesan: " +
-      error.message;
+displayMessage(message);
 
-    return;
+}
 
-  }
-
-
-  for (
-    const message of data
-  ) {
-
-    await displayMessage(
-      message
-    );
-
-  }
-
-
-  scrollBottom();
+scrollBottom();
 
 }
 
 
-/* =====================================
-   TAMPILKAN PESAN
-===================================== */
+/* =========================
+   DISPLAY
+========================= */
 
-async function displayMessage(
-  message
-) {
+function displayMessage(message){
 
-  const chat =
-    document.getElementById(
-      "chat"
-    );
+const chat=
+document.getElementById("chat");
 
+const box=
+document.createElement("div");
 
-  const box =
-    document.createElement(
-      "div"
-    );
+box.className=
+"message "+
+(
+message.sender===myId
+?"mine"
+:"other"
+);
 
+let media=null;
 
-  box.className =
-    "message " +
-    (
-      message.sender === myId
-        ? "mine"
-        : "other"
-    );
+try{
 
+const parsed=
+JSON.parse(message.message);
 
-  let mediaData =
-    null;
+if(
+parsed &&
+parsed.type==="media"
+){
 
+media=parsed;
 
-  try {
+}
 
-    const parsed =
-      JSON.parse(
-        message.message
-      );
+}catch(e){}
 
 
-    if (
-      parsed &&
-      parsed.type === "media" &&
-      parsed.url
-    ) {
+/* =====================
+   MEDIA
+===================== */
 
-      mediaData =
-        parsed;
+if(media){
 
-    }
+if(media.viewOnce===true){
 
-  } catch (error) {
+const viewed=
+Array.isArray(media.viewedBy) &&
+media.viewedBy.includes(myId);
 
-    mediaData =
-      null;
+if(
+viewed &&
+message.sender!==myId
+){
 
-  }
+const expired=
+document.createElement("div");
 
+expired.className="expired";
 
-  /* =================================
-     MEDIA
-  ================================= */
+expired.textContent=
+"👁️ Gambar sekali lihat sudah dibuka";
 
-  if (mediaData) {
+box.appendChild(expired);
 
-    /* ===============================
-       SEKALI LIHAT
-    =============================== */
+}else{
 
-    if (
-      mediaData.viewOnce === true
-    ) {
+const button=
+document.createElement("button");
 
-      const viewedBy =
-        Array.isArray(
-          mediaData.viewedBy
-        )
-          ? mediaData.viewedBy
-          : [];
+button.className="view-once";
 
+button.textContent=
+"👁️ Lihat gambar sekali";
 
-      const alreadyViewed =
-        viewedBy.includes(
-          myId
-        );
+button.onclick=
+()=>openViewOnce(
+message,
+media
+);
 
+box.appendChild(button);
 
-      /*
-        Pengirim tetap bisa melihat
-        pesan yang dia kirim.
-      */
+}
 
-      if (
-        alreadyViewed &&
-        message.sender !== myId
-      ) {
+}else{
 
-        const expired =
-          document.createElement(
-            "div"
-          );
+if(media.mediaType==="image"){
 
+const img=
+document.createElement("img");
 
-        expired.className =
-          "expired";
+img.src=
+media.url;
 
+img.onclick=
+()=>openNormalImage(media.url);
 
-        expired.textContent =
-          "👁️ Gambar sekali lihat sudah dibuka";
+box.appendChild(img);
 
+}
 
-        box.appendChild(
-          expired
-        );
+if(media.mediaType==="video"){
 
-      }
+const video=
+document.createElement("video");
 
-      else {
+video.src=
+media.url;
 
-        const button =
-          document.createElement(
-            "button"
-          );
+video.controls=true;
 
+video.playsInline=true;
 
-        button.className =
-          "view-once-button";
+box.appendChild(video);
 
+}
 
-        button.textContent =
-          "👁️ Lihat gambar sekali";
+}
 
+const name=
+document.createElement("div");
 
-        button.onclick =
-          () => openViewOnce(
-            message,
-            mediaData
-          );
+name.className="media-name";
 
+name.textContent=
+media.viewOnce
+?"👁️ Sekali lihat"
+:media.name;
 
-        box.appendChild(
-          button
-        );
+box.appendChild(name);
 
+}else{
 
-        const label =
-          document.createElement(
-            "div"
-          );
+box.textContent=
+message.message;
 
+}
 
-        label.className =
-          "view-once-label";
-
-
-        label.textContent =
-          "Gambar sekali lihat";
-
-
-        box.appendChild(
-          label
-        );
-
-      }
-
-    }
-
-
-    /* ===============================
-       MEDIA BIASA
-    =============================== */
-
-    else {
-
-      if (
-        mediaData.mediaType ===
-        "image"
-      ) {
-
-        const img =
-          document.createElement(
-            "img"
-          );
-
-
-        img.src =
-          mediaData.url;
-
-
-        img.alt =
-          mediaData.name ||
-          "Gambar";
-
-
-        img.onclick =
-          () => openImage(
-            mediaData.url
-          );
-
-
-        box.appendChild(
-          img
-        );
-
-      }
-
-
-      if (
-        mediaData.mediaType ===
-        "video"
-      ) {
-
-        const video =
-          document.createElement(
-            "video"
-          );
-
-
-        video.src =
-          mediaData.url;
-
-
-        video.controls =
-          true;
-
-
-        video.playsInline =
-          true;
-
-
-        box.appendChild(
-          video
-        );
-
-      }
-
-    }
-
-
-    if (
-      mediaData.name
-    ) {
-
-      const name =
-        document.createElement(
-          "div"
-        );
-
-
-      name.className =
-        "media-name";
-
-
-      name.textContent =
-        mediaData.viewOnce
-          ? "👁️ Sekali lihat"
-          : mediaData.name;
-
-
-      box.appendChild(
-        name
-      );
-
-    }
-
-  }
-
-  /* =================================
-     PESAN TEKS
-  ================================= */
-
-  else {
-
-    box.textContent =
-      message.message;
-
-  }
-
-
-  chat.appendChild(
-    box
-  );
+chat.appendChild(box);
 
 }
 
 
-/* =====================================
+/* =========================
    KIRIM PESAN
-===================================== */
+========================= */
 
-async function sendMessage() {
+async function sendMessage(){
 
-  if (
-    selectedFile
-  ) {
+if(selectedFile){
 
-    await uploadMedia();
+await uploadMedia();
 
-    return;
+return;
 
-  }
+}
 
+const input=
+document.getElementById("message");
 
-  const input =
-    document.getElementById(
-      "message"
-    );
+const text=
+input.value.trim();
 
+if(!text)return;
 
-  const text =
-    input.value.trim();
+input.value="";
 
+const {error}=
+await supabaseClient
+.from("messages")
+.insert({
+sender:myId,
+message:text
+});
 
-  if (!text)
-    return;
+if(error){
 
+alert(
+"Pesan gagal dikirim:\n"+
+error.message
+);
 
-  input.value =
-    "";
+input.value=text;
 
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("messages")
-      .insert({
-
-        sender:
-          myId,
-
-        message:
-          text
-
-      });
-
-
-  if (error) {
-
-    alert(
-      "Pesan gagal dikirim:\n" +
-      error.message
-    );
-
-
-    input.value =
-      text;
-
-  }
+}
 
 }
 
 
-/* =====================================
-   MENU MEDIA
-===================================== */
+/* =========================
+   MEDIA MENU
+========================= */
 
-function openMediaMenu() {
+function openMediaMenu(){
 
-  const menu =
-    document.getElementById(
-      "mediaMenu"
-    );
+const menu=
+document.getElementById(
+"mediaMenu"
+);
 
-
-  menu.style.display =
-    menu.style.display === "block"
-      ? "none"
-      : "block";
-
-}
-
-
-function chooseMedia(
-  viewOnce
-) {
-
-  selectedViewOnce =
-    viewOnce;
-
-
-  document.getElementById(
-    "mediaMenu"
-  ).style.display =
-    "none";
-
-
-  const input =
-    document.getElementById(
-      "fileInput"
-    );
-
-
-  if (
-    viewOnce
-  ) {
-
-    input.accept =
-      "image/*";
-
-  }
-
-  else {
-
-    input.accept =
-      "image/*,video/*";
-
-  }
-
-
-  input.value =
-    "";
-
-
-  input.click();
+menu.style.display=
+menu.style.display==="block"
+?"none"
+:"block";
 
 }
 
 
-/* =====================================
-   PILIH FILE
-===================================== */
+function chooseMedia(viewOnce){
 
-function selectFile(
-  event
-) {
+selectedViewOnce=
+viewOnce;
 
-  const file =
-    event.target.files[0];
+document.getElementById(
+"mediaMenu"
+).style.display="none";
 
+const input=
+document.getElementById(
+"fileInput"
+);
 
-  if (!file)
-    return;
+input.accept=
+viewOnce
+?"image/*"
+:"image/*,video/*";
 
+input.value="";
 
-  const maxSize =
-    50 *
-    1024 *
-    1024;
-
-
-  if (
-    file.size >
-    maxSize
-  ) {
-
-    alert(
-      "Ukuran file maksimal 50 MB."
-    );
-
-
-    event.target.value =
-      "";
-
-
-    return;
-
-  }
-
-
-  if (
-    !file.type.startsWith(
-      "image/"
-    ) &&
-    !file.type.startsWith(
-      "video/"
-    )
-  ) {
-
-    alert(
-      "Hanya gambar dan video yang diperbolehkan."
-    );
-
-
-    event.target.value =
-      "";
-
-
-    return;
-
-  }
-
-
-  if (
-    selectedViewOnce &&
-    !file.type.startsWith(
-      "image/"
-    )
-  ) {
-
-    alert(
-      "Sekali lihat hanya bisa digunakan untuk gambar."
-    );
-
-
-    event.target.value =
-      "";
-
-
-    return;
-
-  }
-
-
-  selectedFile =
-    file;
-
-
-  document.getElementById(
-    "previewName"
-  ).textContent =
-    selectedViewOnce
-      ? "👁️ " +
-        file.name +
-        " — Sekali lihat"
-      : file.name;
-
-
-  document.getElementById(
-    "preview"
-  ).style.display =
-    "block";
+input.click();
 
 }
 
 
-/* =====================================
-   BATAL FILE
-===================================== */
+/* =========================
+   FILE
+========================= */
 
-function cancelFile() {
+function selectFile(event){
 
-  selectedFile =
-    null;
+const file=
+event.target.files[0];
 
+if(!file)return;
 
-  selectedViewOnce =
-    false;
+const max=
+50*1024*1024;
 
+if(file.size>max){
 
-  document.getElementById(
-    "fileInput"
-  ).value =
-    "";
+alert(
+"Ukuran maksimal 50 MB."
+);
 
+event.target.value="";
 
-  document.getElementById(
-    "preview"
-  ).style.display =
-    "none";
+return;
 
+}
 
-  document.getElementById(
-    "previewName"
-  ).textContent =
-    "";
+if(
+!file.type.startsWith("image/") &&
+!file.type.startsWith("video/")
+){
+
+alert(
+"Hanya gambar dan video."
+);
+
+event.target.value="";
+
+return;
+
+}
+
+if(
+selectedViewOnce &&
+!file.type.startsWith("image/")
+){
+
+alert(
+"Sekali lihat hanya untuk gambar."
+);
+
+event.target.value="";
+
+return;
+
+}
+
+selectedFile=file;
+
+document.getElementById(
+"previewName"
+).textContent=
+selectedViewOnce
+?"👁️ "+file.name+" — Sekali lihat"
+:file.name;
+
+document.getElementById(
+"preview"
+).style.display="block";
 
 }
 
 
-/* =====================================
-   UPLOAD MEDIA
-===================================== */
+/* =========================
+   CANCEL
+========================= */
 
-async function uploadMedia() {
+function cancelFile(){
 
-  if (!selectedFile)
-    return;
+selectedFile=null;
 
+selectedViewOnce=false;
 
-  const file =
-    selectedFile;
+document.getElementById(
+"fileInput"
+).value="";
 
+document.getElementById(
+"preview"
+).style.display="none";
 
-  const uploadStatus =
-    document.getElementById(
-      "uploadStatus"
-    );
-
-
-  uploadStatus.style.display =
-    "block";
-
-
-  uploadStatus.textContent =
-    "Mengunggah " +
-    file.name +
-    "...";
-
-
-  try {
-
-    const extension =
-      file.name.includes(".")
-        ? file.name
-            .split(".")
-            .pop()
-        : "file";
-
-
-    const filePath =
-      myId +
-      "/" +
-      crypto.randomUUID() +
-      "." +
-      extension;
-
-
-    const {
-      error:
-        uploadError
-    } =
-      await supabaseClient
-        .storage
-        .from(
-          STORAGE_BUCKET
-        )
-        .upload(
-          filePath,
-          file,
-          {
-            cacheControl:
-              "3600",
-
-            upsert:
-              false,
-
-            contentType:
-              file.type
-          }
-        );
-
-
-    if (
-      uploadError
-    ) {
-
-      throw uploadError;
-
-    }
-
-
-    const {
-      data:
-        urlData
-    } =
-      supabaseClient
-        .storage
-        .from(
-          STORAGE_BUCKET
-        )
-        .getPublicUrl(
-          filePath
-        );
-
-
-    const publicUrl =
-      urlData.publicUrl;
-
-
-    const mediaType =
-      file.type.startsWith(
-        "image/"
-      )
-        ? "image"
-        : "video";
-
-
-    const mediaMessage =
-      JSON.stringify({
-
-        type:
-          "media",
-
-        mediaType:
-          mediaType,
-
-        url:
-          publicUrl,
-
-        name:
-          file.name,
-
-        viewOnce:
-          selectedViewOnce,
-
-        viewedBy:
-          []
-
-      });
-
-
-    const {
-      error:
-        messageError
-    } =
-      await supabaseClient
-        .from(
-          "messages"
-        )
-        .insert({
-
-          sender:
-            myId,
-
-          message:
-            mediaMessage
-
-        });
-
-
-    if (
-      messageError
-    ) {
-
-      throw messageError;
-
-    }
-
-
-    cancelFile();
-
-
-    uploadStatus.style.display =
-      "none";
-
-
-  } catch (
-    error
-  ) {
-
-    console.error(
-      error
-    );
-
-
-    alert(
-      "File gagal dikirim:\n" +
-      error.message
-    );
-
-
-    uploadStatus.style.display =
-      "none";
-
-  }
+document.getElementById(
+"previewName"
+).textContent="";
 
 }
 
 
-/* =====================================
-   REALTIME CHAT
-===================================== */
+/* =========================
+   UPLOAD
+========================= */
 
-function subscribeChat() {
+async function uploadMedia(){
 
-  if (
-    chatChannel
-  ) {
+if(!selectedFile)return;
 
-    supabaseClient.removeChannel(
-      chatChannel
-    );
+const file=
+selectedFile;
 
-  }
+const status=
+document.getElementById(
+"uploadStatus"
+);
 
+status.style.display="block";
 
-  chatChannel =
-    supabaseClient
-      .channel(
-        "chat-room-global"
-      )
+status.textContent=
+"Mengunggah...";
 
-      .on(
-        "postgres_changes",
-        {
-          event:
-            "INSERT",
+try{
 
-          schema:
-            "public",
+const ext=
+file.name.includes(".")
+?file.name.split(".").pop()
+:"jpg";
 
-          table:
-            "messages"
-        },
-
-        async payload => {
-
-          await displayMessage(
-            payload.new
-          );
+const path=
+myId+
+"/"+
+crypto.randomUUID()+
+"."+ext;
 
 
-          scrollBottom();
+/*
+   UPLOAD PRIVATE
+*/
 
-        }
+const {error:uploadError}=
+await supabaseClient
+.storage
+.from(BUCKET)
+.upload(
+path,
+file,
+{
+upsert:false,
+contentType:file.type
+}
+);
 
-      )
+if(uploadError)
+throw uploadError;
 
-      .on(
-        "postgres_changes",
-        {
-          event:
-            "UPDATE",
 
-          schema:
-            "public",
+/*
+   MEDIA BIASA
+*/
 
-          table:
-            "messages"
-        },
+if(!selectedViewOnce){
 
-        async payload => {
+const {data:signed,error}=
+await supabaseClient
+.storage
+.from(BUCKET)
+.createSignedUrl(
+path,
+60*60*24*30
+);
 
-          /*
-            Update diperlukan supaya
-            status sekali lihat berubah
-            setelah dibuka.
-          */
+if(error)
+throw error;
 
-          await refreshChat();
+const media={
+type:"media",
+mediaType:
+file.type.startsWith("image/")
+?"image"
+:"video",
+url:signed.signedUrl,
+path:path,
+name:file.name,
+viewOnce:false
+};
 
-        }
-
-      )
-
-      .subscribe();
+await saveMedia(media);
 
 }
 
-
-/* =====================================
-   REFRESH CHAT
-===================================== */
-
-async function refreshChat() {
-
-  const chat =
-    document.getElementById(
-      "chat"
-    );
-
-
-  chat.innerHTML =
-    "";
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from(
-        "messages"
-      )
-      .select("*")
-      .order(
-        "created_at",
-        {
-          ascending:
-            true
-        }
-      );
-
-
-  if (
-    error
-  ) {
-
-    console.error(
-      error
-    );
-
-    return;
-
-  }
-
-
-  for (
-    const message of data
-  ) {
-
-    await displayMessage(
-      message
-    );
-
-  }
-
-
-  scrollBottom();
-
-}
-
-
-/* =====================================
+/*
    VIEW ONCE
-===================================== */
+*/
+
+else{
+
+const token=
+crypto.randomUUID();
+
+const media={
+type:"media",
+mediaType:"image",
+path:path,
+name:file.name,
+token:token,
+viewOnce:true,
+viewedBy:[]
+};
+
+await saveMedia(media);
+
+}
+
+cancelFile();
+
+status.style.display="none";
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"Upload gagal:\n"+
+error.message
+);
+
+status.style.display="none";
+
+}
+
+}
+
+
+/* =========================
+   SAVE MEDIA
+========================= */
+
+async function saveMedia(media){
+
+const {error}=
+await supabaseClient
+.from("messages")
+.insert({
+
+sender:myId,
+
+message:
+JSON.stringify(media)
+
+});
+
+if(error)
+throw error;
+
+}
+
+
+/* =========================
+   VIEW ONCE
+========================= */
 
 async function openViewOnce(
-  message,
-  mediaData
-) {
+message,
+media
+){
 
-  if (
-    message.sender ===
-    myId
-  ) {
+if(message.sender===myId){
 
-    openImage(
-      mediaData.url
-    );
+alert(
+"Pengirim tidak perlu membuka gambar melalui View Once."
+);
 
-    return;
+return;
 
-  }
+}
 
+const viewed=
+Array.isArray(media.viewedBy) &&
+media.viewedBy.includes(myId);
 
-  const viewedBy =
-    Array.isArray(
-      mediaData.viewedBy
-    )
-      ? mediaData.viewedBy
-      : [];
+if(viewed){
 
+alert(
+"Gambar sudah dibuka."
+);
 
-  if (
-    viewedBy.includes(
-      myId
-    )
-  ) {
+return;
 
-    alert(
-      "Gambar sekali lihat sudah dibuka."
-    );
+}
 
+const url=
+FUNCTION_URL+
+"?message="+
+encodeURIComponent(message.id)+
+"&token="+
+encodeURIComponent(media.token)+
+"&viewer="+
+encodeURIComponent(myId);
 
-    return;
+try{
 
-  }
+const response=
+await fetch(url,{
+method:"GET",
+cache:"no-store"
+});
 
+if(!response.ok){
 
-  /*
-    Tandai SEBELUM membuka.
-    Ini mencegah klik berulang
-    secara cepat.
-  */
+const text=
+await response.text();
 
-  const updatedMedia = {
+throw new Error(
+text ||
+"Gambar sudah tidak tersedia."
+);
 
-    ...mediaData,
+}
 
-    viewedBy: [
-      ...viewedBy,
-      myId
-    ]
+const blob=
+await response.blob();
 
-  };
-
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from(
-        "messages"
-      )
-      .update({
-
-        message:
-          JSON.stringify(
-            updatedMedia
-          )
-
-      })
-      .eq(
-        "id",
-        message.id
-      );
+const imageUrl=
+URL.createObjectURL(blob);
 
 
-  if (
-    error
-  ) {
+/*
+   Tampilkan gambar.
+*/
 
-    alert(
-      "Gambar tidak bisa dibuka."
-    );
+const viewer=
+document.getElementById(
+"viewer"
+);
 
+const img=
+document.getElementById(
+"viewerImage"
+);
 
-    console.error(
-      error
-    );
+img.src=imageUrl;
 
-
-    return;
-
-  }
-
-
-  openImage(
-    mediaData.url
-  );
+viewer.style.display="flex";
 
 
-  setTimeout(
-    () => {
+/*
+   Bersihkan URL blob setelah
+   viewer ditutup.
+*/
 
-      refreshChat();
+img.dataset.blobUrl=
+imageUrl;
 
-    },
-    500
-  );
+
+/*
+   Refresh chat agar tombol berubah
+   menjadi "sudah dibuka".
+*/
+
+setTimeout(
+refreshChat,
+500
+);
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"Gambar tidak dapat dibuka:\n"+
+error.message
+);
+
+}
 
 }
 
 
-/* =====================================
-   BUKA GAMBAR
-===================================== */
+/* =========================
+   GAMBAR BIASA
+========================= */
 
-function openImage(
-  url
-) {
+function openNormalImage(url){
 
-  const container =
-    document.getElementById(
-      "fullscreenContent"
-    );
+const viewer=
+document.getElementById(
+"viewer"
+);
 
+const img=
+document.getElementById(
+"viewerImage"
+);
 
-  container.innerHTML =
-    "";
+img.src=url;
 
-
-  const img =
-    document.createElement(
-      "img"
-    );
-
-
-  img.src =
-    url;
-
-
-  container.appendChild(
-    img
-  );
-
-
-  document.getElementById(
-    "fullscreenMedia"
-  ).style.display =
-    "flex";
+viewer.style.display="flex";
 
 }
 
 
-/* =====================================
-   TUTUP FULLSCREEN
-===================================== */
+/* =========================
+   CLOSE VIEWER
+========================= */
 
-function closeFullscreen(
-  event
-) {
+function closeViewer(){
 
-  if (
-    event &&
-    event.target !==
-      event.currentTarget
-  ) {
+const viewer=
+document.getElementById(
+"viewer"
+);
 
-    return;
+const img=
+document.getElementById(
+"viewerImage"
+);
 
-  }
+const blobUrl=
+img.dataset.blobUrl;
 
+if(blobUrl){
 
-  document.getElementById(
-    "fullscreenMedia"
-  ).style.display =
-    "none";
+URL.revokeObjectURL(
+blobUrl
+);
 
+img.dataset.blobUrl="";
 
-  document.getElementById(
-    "fullscreenContent"
-  ).innerHTML =
-    "";
+}
+
+img.src="";
+
+viewer.style.display="none";
 
 }
 
 
-/* =====================================
+/* =========================
+   REALTIME
+========================= */
+
+function subscribeChat(){
+
+if(chatChannel){
+
+supabaseClient.removeChannel(
+chatChannel
+);
+
+}
+
+chatChannel=
+supabaseClient
+.channel("chat-room-global")
+
+.on(
+"postgres_changes",
+{
+event:"INSERT",
+schema:"public",
+table:"messages"
+},
+payload=>{
+
+displayMessage(
+payload.new
+);
+
+scrollBottom();
+
+}
+)
+
+.on(
+"postgres_changes",
+{
+event:"UPDATE",
+schema:"public",
+table:"messages"
+},
+payload=>{
+
+refreshChat();
+
+}
+)
+
+.subscribe();
+
+}
+
+
+/* =========================
+   REFRESH
+========================= */
+
+async function refreshChat(){
+
+const chat=
+document.getElementById("chat");
+
+chat.innerHTML="";
+
+const {data,error}=
+await supabaseClient
+.from("messages")
+.select("*")
+.order("created_at",{
+ascending:true
+});
+
+if(error)return;
+
+for(const message of data){
+
+displayMessage(message);
+
+}
+
+scrollBottom();
+
+}
+
+
+/* =========================
    SCROLL
-===================================== */
+========================= */
 
-function scrollBottom() {
+function scrollBottom(){
 
-  const chat =
-    document.getElementById(
-      "chat"
-    );
+const chat=
+document.getElementById(
+"chat"
+);
 
-
-  chat.scrollTop =
-    chat.scrollHeight;
+chat.scrollTop=
+chat.scrollHeight;
 
 }
 
